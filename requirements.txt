@@ -1,0 +1,3 @@
+# Host-side (desktop CPython 3) dependencies for the MovingCap Test Kit (mctk).
+# The drive-side MicroPython scripts in app-scripts/ need NOTHING from this file.
+requests>=2.28

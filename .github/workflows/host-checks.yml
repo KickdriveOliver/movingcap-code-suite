@@ -1,0 +1,35 @@
+name: host-checks
+
+# Host-side (desktop CPython) checks only. These do NOT talk to a drive — they
+# just verify that the mctk test kit and the example drive script parse/import
+# cleanly so pull requests get a basic green check.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compile-and-import:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install host dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Byte-compile all Python (host + drive scripts)
+        run: python -m compileall testing app-scripts
+
+      - name: Import the mctk package
+        working-directory: testing
+        run: python -c "import mctk; print('mctk', mctk.__version__)"
