@@ -14,7 +14,8 @@ others) and used for autonomous development and testing.
 industrial, agricultural, and special applications (12/24/48/72 V DC or custom supply),
 communicating via EtherCAT, CANopen, Ethernet TCP/IP, or digital I/O. **MovingCap CODE** is
 the on-drive MicroPython environment that lets you run application logic directly on the
-drive. This suite targets the **MovingCap Ethernet ETH (MC349 ETH)** drives.
+drive. This suite targets the **MovingCap Ethernet ETH** drives range: 
+MovingCap turnTRACK, flatTRACK, shortTRACK, FATtrack and pushTRACK.
 
 ## What's inside
 ```

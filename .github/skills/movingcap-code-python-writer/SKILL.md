@@ -72,7 +72,7 @@ use the documented free user-parameter area:
 - Example collection: https://github.com/KickdriveOliver/movingcap
 
 ## Runtime behavior
-- Prefer documented MovingCap CODE modules and APIs only.
+- Use documented MovingCap CODE modules and APIs only.
 - For delays, prefer `time.sleep_ms(ms)` over the legacy `sys.wait(ms)`.
 - If a request depends on functionality not covered by the references, say so and ask for
   the relevant excerpt or a narrower requirement.
