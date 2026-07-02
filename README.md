@@ -17,6 +17,9 @@ the on-drive MicroPython environment that lets you run application logic directl
 drive. This suite targets the **MovingCap Ethernet ETH** servo drives range: 
 MovingCap turnTRACK, flatTRACK, shortTRACK, FATtrack and pushTRACK.
 
+## Audience
+Application builders / users of MovingCap servo drive products who want a reproducible, scriptable way to build and validate MovingCap servo drive applications.
+
 ## What's inside
 ```
 movingcap-code-suite/
@@ -36,8 +39,6 @@ movingcap-code-suite/
 └─ requirements.txt     Host-side deps (requests)
 ```
 
-## Audience
-Clients and users of MovingCap servo drive products who want a reproducible, scriptable way to build and validate MovingCap servo drive applications.
 
 ## Two kinds of Python
 | | Drive-side | Host-side |
