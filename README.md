@@ -2,7 +2,7 @@
 
 A self-contained workspace for **developing and testing MovingCap CODE (MicroPython)
 applications** on [MovingCap](https://movingcap.de) Ethernet ETH servo drives
-(MC349 ETH). It bundles everything an engineer — or an AI coding agent — needs to write a
+(e.g. MovingCap turnTRACK 349 / MC349 ETH). It bundles everything an engineer — or an AI coding agent — needs to write a
 servo drive application, upload it to a real servo drive, run it, and verify its behaviour.
 
 It is designed to be dropped into any agentic coding tool (GitHub Copilot, Claude Code, and
