@@ -3,7 +3,7 @@
 A self-contained workspace for **developing and testing MovingCap CODE (MicroPython)
 applications** on [MovingCap](https://movingcap.de) Ethernet ETH servo drives
 (MC349 ETH). It bundles everything an engineer — or an AI coding agent — needs to write a
-drive application, upload it to a real drive, run it, and verify its behaviour.
+servo drive application, upload it to a real servo drive, run it, and verify its behaviour.
 
 It is designed to be dropped into any agentic coding tool (GitHub Copilot, Claude Code, and
 others) and used for autonomous development and testing.
@@ -14,13 +14,13 @@ others) and used for autonomous development and testing.
 industrial, agricultural, and special applications (12/24/48/72 V DC or custom supply),
 communicating via EtherCAT, CANopen, Ethernet TCP/IP, or digital I/O. **MovingCap CODE** is
 the on-drive MicroPython environment that lets you run application logic directly on the
-drive. This suite targets the **MovingCap Ethernet ETH** drives range: 
+drive. This suite targets the **MovingCap Ethernet ETH** servo drives range: 
 MovingCap turnTRACK, flatTRACK, shortTRACK, FATtrack and pushTRACK.
 
 ## What's inside
 ```
 movingcap-code-suite/
-├─ app-scripts/         Drive-side MicroPython apps (MovingCap CODE)
+├─ app-scripts/         Servo drive-side MicroPython apps (MovingCap CODE)
 │   ├─ driveTurntablePositioning.py   ← worked example
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
 ├─ skills/              "How to write MovingCap CODE" skill
@@ -37,24 +37,23 @@ movingcap-code-suite/
 ```
 
 ## Audience
-Clients and users of MovingCap servo drive products who want a reproducible, scriptable way
-to build and validate drive applications.
+Clients and users of MovingCap servo drive products who want a reproducible, scriptable way to build and validate MovingCap servo drive applications.
 
 ## Two kinds of Python
 | | Drive-side | Host-side |
 |---|---|---|
 | Where | `app-scripts/` | `testing/` (`mctk`) |
-| Runtime | MovingCap CODE MicroPython, on the drive | Desktop CPython 3, on your PC |
+| Runtime | MovingCap CODE MicroPython, on the servo drive | Desktop CPython 3, on your PC |
 | Rules | Documented APIs only, **no f-strings**, `time.sleep_ms` | Normal Python; only needs `requests` |
 
-Do not apply drive-side constraints to the host tooling, or host conventions to drive scripts.
+Do not apply servo drive-side constraints to the host tooling, or host conventions to servo drive scripts.
 
 ## Quick start
 ```bash
 # 1. Install host dependencies (Python 3.8+)
 python -m pip install -r requirements.txt
 
-# 2. Make sure the drive is reachable (default IP 192.168.2.150)
+# 2. Make sure the servo drive is reachable (default IP 192.168.2.150)
 ping 192.168.2.150
 
 # 3. Run the example functional test (uploads + runs + verifies on the drive)
@@ -63,8 +62,8 @@ python test_turntable_positioning.py            # or: python test_turntable_posi
 ```
 A JSON report is written to `testing/results/`. Exit code 0 = all checks passed (CI-friendly).
 
-> ⚠️ **Safety:** the example test ENABLES the drive and PHYSICALLY MOVES the axis between 0°
-> and 180°. Ensure the turntable can rotate freely before running.
+> ⚠️ **Safety:** the example test ENABLES the servo drive and PHYSICALLY MOVES the axis between 0° and 180°. 
+> Ensure the turntable can rotate freely before running.
 
 ## Using the test kit (`mctk`) directly
 ```python
