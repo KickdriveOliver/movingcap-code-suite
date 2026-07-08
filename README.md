@@ -26,7 +26,7 @@ movingcap-code-suite/
 ├─ app-scripts/         Servo drive-side MicroPython apps (MovingCap CODE)
 │   ├─ driveTurntablePositioning.py   ← worked example
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
-├─ skills/              "How to write MovingCap CODE" skill
+├─ skills/              MovingCap CODE authoring skill + Kickdrive `.kickpro` config skill
 ├─ instructions/        Coding rules for app-scripts/**/*.py
 ├─ agents/              Engineer & reviewer agent definitions (portable)
 ├─ .github/             Copilot-native mirror of the agents/skills/instructions
@@ -101,6 +101,15 @@ monitor.stop()
 3. Use only documented APIs (the `app-scripts/*.pyi` stubs give you editor docs); no
    f-strings; bounded `ChkReady`/`ChkError` waits; clean `EnableDrive`/`PowerQuit`.
 4. Add a functional test under `testing/` modeled on `test_turntable_positioning.py`.
+
+## Configuring the drive (Kickdrive companion skill)
+Beside the MovingCap CODE authoring skill, this suite ships a companion skill,
+[`skills/kickdrive-project-writer/SKILL.md`](skills/kickdrive-project-writer/SKILL.md), for
+fullmo [Kickdrive](https://www.kickdrive.de) `.kickpro` XML projects. Kickdrive is the
+host-side tool for reading, writing, and flashing a drive's CANopen object-dictionary
+parameters — drive *configuration*, as opposed to the on-drive MicroPython *application* that
+MovingCap CODE runs. Use it when you need to set up node configs, parameter objects, or
+automated flashing rather than write drive scripts.
 
 ## Communication interfaces (reference)
 | Interface | Port | Use |
