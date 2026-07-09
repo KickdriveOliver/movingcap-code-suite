@@ -8,6 +8,8 @@ servo drive application, upload it to a real servo drive, run it, and verify its
 It is designed to be dropped into any agentic coding tool (GitHub Copilot, Claude Code, and
 others) and used for autonomous development and testing.
 
+Public repository at [movingcap-code-suite](https://github.com/KickdriveOliver/movingcap-code-suite)
+
 ## About MovingCap
 [MovingCap](https://movingcap.de) is a family of intelligent compact servo drives by
 **Fullmo Drives GmbH** — motors with integrated control and Web & Python programmability for
@@ -21,6 +23,7 @@ MovingCap turnTRACK, flatTRACK, shortTRACK, FATtrack and pushTRACK.
 Application builders / users of MovingCap servo drive products who want a reproducible, scriptable way to build and validate MovingCap servo drive applications.
 
 ## What's inside
+
 ```
 movingcap-code-suite/
 ├─ app-scripts/         Servo drive-side MicroPython apps (MovingCap CODE)
