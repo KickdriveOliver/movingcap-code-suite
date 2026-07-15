@@ -20,6 +20,14 @@ Ground every change in these suite resources before writing or testing code:
    object read/write, UDP monitoring, test runner), `testing/TestPlan.md`, and the worked
    example test `testing/test_turntable_positioning.py`.
 
+## Official MovingCap documentation
+Use these to understand how MovingCap Ethernet ETH drives and MovingCap CODE work. The skill
+above carries the full URL list; these are the essentials:
+- Product & company (Fullmo Drives GmbH): https://movingcap.de
+- MovingCap CODE manual (MicroPython on the drive): https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html
+- API import documentation (mirrors the `app-scripts/*.pyi` stubs): https://movingcap.de/user/MovingCap-AnwenderDoku/2-MovingCap_ETH_Ethernet/MovingCap%20CODE%20Python/MovingCap_Import_Documentation/
+- Example & demo collection: https://github.com/KickdriveOliver/movingcap
+
 ## Constraints
 - DO NOT invent MovingCap APIs or use desktop-Python / stdlib modules the skill does not document.
 - DO NOT use Python f-strings in drive scripts — concatenate (`'... ' + str(x)`).

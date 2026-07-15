@@ -16,6 +16,12 @@ uploading, running, or modifying anything.
 - Behavior expectations: [`testing/TestPlan.md`](../testing/TestPlan.md) and the example app
   in `app-scripts/`.
 
+## Official MovingCap documentation
+Ground rule checks in the official references (the skill carries the full URL list):
+- MovingCap CODE manual (MicroPython on the drive): https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html
+- API import documentation (mirrors the `app-scripts/*.pyi` stubs): https://movingcap.de/user/MovingCap-AnwenderDoku/2-MovingCap_ETH_Ethernet/MovingCap%20CODE%20Python/MovingCap_Import_Documentation/
+- Example & demo collection: https://github.com/KickdriveOliver/movingcap
+
 ## Constraints
 - DO NOT edit files, upload scripts, run scripts, or execute any terminal command — read-only.
 - DO NOT actuate or connect to any drive.

@@ -29,7 +29,7 @@ movingcap-code-suite/
 ├─ app-scripts/         Servo drive-side MicroPython apps (MovingCap CODE)
 │   ├─ driveTurntablePositioning.py   ← worked example
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
-├─ skills/              "How to write MovingCap CODE" skill
+├─ skills/              MovingCap CODE authoring skill + Kickdrive `.kickpro` config skill
 ├─ instructions/        Coding rules for app-scripts/**/*.py
 ├─ agents/              Engineer & reviewer agent definitions (portable)
 ├─ .github/             Copilot-native mirror of the agents/skills/instructions
@@ -38,6 +38,8 @@ movingcap-code-suite/
 │   ├─ test_turntable_positioning.py  ← functional test for the example
 │   ├─ TestPlan.md      Generalized functional test plan
 │   └─ results/         JSON test reports land here
+├─ kickdrive-project-examples/  Reference examples for Kickdrive .kickpro project format
+│   ├─ project_tcpdrive/        MovingCap ETH startup template as uncompressed Kickdrive project (.kickpro)
 ├─ AGENTS.md            Tool-agnostic agent guide
 └─ requirements.txt     Host-side deps (requests)
 ```
@@ -104,6 +106,15 @@ monitor.stop()
 3. Use only documented APIs (the `app-scripts/*.pyi` stubs give you editor docs); no
    f-strings; bounded `ChkReady`/`ChkError` waits; clean `EnableDrive`/`PowerQuit`.
 4. Add a functional test under `testing/` modeled on `test_turntable_positioning.py`.
+
+## Configuring the drive (Kickdrive companion skill)
+Beside the MovingCap CODE authoring skill, this suite ships a companion skill,
+[`skills/kickdrive-project-writer/SKILL.md`](skills/kickdrive-project-writer/SKILL.md), for
+ [Kickdrive](https://www.kickdrive.de) `.kickpro` XML projects. Kickdrive is a Windows-only,
+host-side tool for reading, writing a servo drive's CANopen object-dictionary
+parameters — *configuration*, as opposed to the on-drive MicroPython *application* that
+MovingCap CODE runs. Use it to create additional user tools that allow to manage presets of relevant
+CANopen object parameters.
 
 ## Communication interfaces (reference)
 | Interface | Port | Use |

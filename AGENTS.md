@@ -15,6 +15,7 @@ tooling to upload, run, and diagnose them.
 | `app-scripts/` | Drive-side MicroPython application scripts (e.g. `driveTurntablePositioning.py`). |
 | `app-scripts/*.pyi` | Authoritative MovingCap CODE API stubs (`mcdrive/mcnet/refgo/sys/time.pyi`), kept beside the drive scripts so editors (VS Code/Pylance) resolve imports and show inline docs. |
 | `skills/movingcap-code-python-writer/SKILL.md` | How to write MovingCap CODE; key APIs and rules. |
+| `skills/kickdrive-project-writer/SKILL.md` | Companion skill for fullmo Kickdrive `.kickpro` drive-configuration / CANopen parameter flashing (host-side config, not on-drive code). |
 | `instructions/movingcap-scripts.instructions.md` | Hard coding rules for `app-scripts/**/*.py`. |
 | `agents/` | Engineer and reviewer agent definitions (portable). |
 | `testing/mctk/` | Host-side test kit: upload/run, REFGO `OR`/`OW`, UDP monitor, test runner. |
