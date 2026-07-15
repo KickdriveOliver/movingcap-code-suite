@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<KickdriveProject>
+ <module panelVisible="1" label="Project Home" type="project">
+  <docs>
+   <default>
+    <html>
+     <head>
+      <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+       <title>MovingCap Ethernet Drives</title>
+      </meta>
+      <link rel="stylesheet" type="text/css" href="template.css"/>
+     </head>
+     <body>
+      <h1>MovingCap Ethernet Drives</h1>
+      <p>A project template for setup and service of MovingCap Ethernet drives.</p>
+      <p>How to Use</p>
+      <ul>
+       <li>Connect your PC with your Ethernet drive via network</li>
+       <li>Make sure your Ethernet drive and your computer PC are in the same IP subnet.<br/>
+	   MovingCAP's default IPv4 address is <strong>192.168.2.150</strong> - you could set your PC network interface to IPv4 address 192.168.2.10 
+       and IP subnet prefix length 24 (or Subnet 255.255.255.0)
+	   for example.)</li>
+       <li>Open the <a href="#app:panel,Communication">Communication</a> module and check if the IP address is the same as your MovingCap Ethernet drive.<br/>
+	   TIP: The status LED of MovingCap Ethernet uses Morse code to indicate the currently used IP address. You can use
+	   a Morse app for your smartphone to decode the blinking LED and show the actual IP.
+	   </li>
+       <li>Switch on power supply for the MovingCap drive.</li>
+       <li>Go to <a href="#app:panel,MC Eth Drive - Setup">MC Eth Drive - Setup</a> and click 'Start Drive'.</li>
+       <li>Use <a href="#app:panel,MC Eth Drive - Object Editor">MC Eth Drive - Object Editor</a> to view or modify specific DS402 drive parameters.</li>
+       <li>Open <a href="#app:panel,Scope">Scope</a>, drag one or more parameter(s) from the Object Editor to the 'Scope' 
+	   area and press 'Start' for sampling. Double click on the parameter creates a plot.
+	   	<br/>
+	    Use the 'Record' button to store the sampled data into a file. (The file is by default stored along with the %%AppTitle%% project data.) Use the 'Open' button from the Scope toolbar to load and view such a recording. Use 'Save Project' from the main toolbar to store all relevant data into a '.kickzip' project file.	   &#xd;&#xd;&#xd;&#xd;&#xd;
+	   <br/>
+	   Using <a href="#app:panel,Scope - Trigger">Scope - Trigger</a> you can define trigger events to record only measurements immediately before and &#xd;&#xd;&#xd;&#xd;&#xd;
+	   after a trigger event. 
+	   </li>
+      </ul>
+     </body>
+    </html>
+   </default>
+  </docs>
+  <module description="Allows CAN-style communication via TCP or CAN bus" panelVisible="0" label="Communication" type="canusb">
+   <module panelVisible="0" label="CAN Monitor" type="canmonitor"/>
+   <properties>
+    <Port>net:192.168.2.150:15001</Port>
+    <Baudrate>250K</Baudrate>
+    <DebugMode>0</DebugMode>
+    <MonitorFilter0>id = 81-ff # emergency msg only</MonitorFilter0>
+    <MonitorFilter1>id != 81-ff # hide emergency msg</MonitorFilter1>
+    <MonitorFilter2>dir = tx # tx data only</MonitorFilter2>
+    <MonitorFilter3>exclude index = 6063, index = 606c # hide pos/velocity readout</MonitorFilter3>
+    <MonitorFilter4>index = 6041 # show drive status only</MonitorFilter4>
+    <MonitorFilter5>data = 80 * # show SDO abort transfer / error codes</MonitorFilter5>
+   </properties>
+  </module>
+  <module description="Scope / Data Logger" panelVisible="0" label="Scope" userLevel="1" type="datalog" dragDropMode="1">
+   <module panelVisible="0" label="Trigger" type="trigger"/>
+   <docs>
+    <DisplayedKickPlots>
+     <Containers/>
+    </DisplayedKickPlots>
+    <MonitoringObjects>
+     <CANopenObjectList>
+      <CANopenObject objectType="7" kickScaling="" monitorInterval="10" kickUiFormat="updates:r200; shape:slider; range:-32768,32768; step:1" dataType="0004" actualValue="-8531" index="6064" nodeId="50" name="Position actual value" PDOmapping="TPDO" uniqueIDRef="UID_PARAM_6064"/>
+     </CANopenObjectList>
+    </MonitoringObjects>
+   </docs>
+   <properties>
+    <TriggerConfig>001.606ch.00h > 10;001.6041h.00h</TriggerConfig>
+    <PreTriggerTimeMsec>1000</PreTriggerTimeMsec>
+    <PostTriggerTimeMsec>2000</PostTriggerTimeMsec>
+    <TriggerState>0</TriggerState>
+   </properties>
+   <module description="Scope Panel" panelVisible="0" label="Pos" userLevel="1" type="datalog_plot">
+    <docs>
+     <PlotConfigurationDoc>
+      <PlotConfiguration yScale="a" title="Pos" xScale="6" cursorPosition="12.2">
+       <Curves>
+        <CurveConfiguration colorName="#000080" dataObjectId="050.6064h.00h" objectName="050.6064h.00h Position actual value"/>
+       </Curves>
+      </PlotConfiguration>
+     </PlotConfigurationDoc>
+    </docs>
+   </module>
+   <slave label="Communication" type="canusb"/>
+  </module>
+  <module description="MovingCap Ethernet Drive" panelVisible="0" label="MC Eth Drive" type="drive_vdc">
+   <module description="Initial Setup and Test" panelVisible="0" label="Setup" userLevel="1" type="drive_canopen_setup"/>
+   <module description="Read/Edit/Write Drive Parameters" panelVisible="0" label="Object Editor" userLevel="1" type="drive_canopen_objects">
+    <docs>
+     <EditorObjects>
+      <CANopenObjectList>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:11 read ok" kickUiFormat="updates:r; shape:label" dataType="0009" actualValue="MC349_ETH_RE" dynamicUiInstances="label,20,20" index="1008" nodeId="1" kickStatus="1" name="Device Name" PDOmapping="no" accessType="const"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:11 read ok" kickUiFormat="updates:r; shape:label" dataType="0009" actualValue="v50.00.03.13_RE" dynamicUiInstances="label,20,80" index="100A" nodeId="1" kickStatus="1" name="Software Version" PDOmapping="no" accessType="const"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:11 read ok" kickUiFormat="type:integer; range:0,4.29497e+09" dataType="0007" actualValue="1000" index="3401" defaultValue="0x0" nodeId="50" kickStatus="1" name="Pos Control Window [Incr]" subIndex="03" PDOmapping="no" uniqueIDRef="UID_PARAM_340103"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:11 read ok" kickUiFormat="type:integer; range:0,65520" dataType="0006" actualValue="1000" index="3401" defaultValue="0x0" nodeId="50" kickStatus="1" name="Acc. Torque [0.1%] (1-1000)" subIndex="15" PDOmapping="no" uniqueIDRef="UID_PARAM_340115"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:11 read ok" kickUiFormat="type:integer; range:0,65520" dataType="0006" actualValue="1000" index="3401" defaultValue="0x0" nodeId="50" kickStatus="1" name="Dec. Torque [0.1%] (1-1000)" subIndex="16" PDOmapping="no" uniqueIDRef="UID_PARAM_340116"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:11 read ok" kickUiFormat="type:integer; range:0,65520" dataType="0006" actualValue="1000" index="3401" nodeId="50" kickStatus="1" name="Stall Torque [0.1%] (1-1000)" subIndex="18" PDOmapping="no" uniqueIDRef="UID_PARAM_340118"/>
+       <CANopenObject objectType="7" kickScaling="" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:slider; range:-32768,32768; step:1" dataType="0004" actualValue="75" index="6064" nodeId="1" kickStatus="1" name="Position actual value" PDOmapping="TPDO" uniqueIDRef="UID_PARAM_6064"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:0,4.29497e+09; step:5000" dataType="0007" actualValue="11" index="6067" lowLimit="0x0" defaultValue="0x1388" nodeId="50" kickStatus="1" highLimit="0x80000000" name="Target Reached Window [user units]" PDOmapping="no" uniqueIDRef="UID_PARAM_6067"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:0,65520; step:20" dataType="0006" actualValue="200" index="6068" lowLimit="0x0" defaultValue="0x64" nodeId="50" kickStatus="1" highLimit="0xFFFF" name="Target Window Time [ms]" PDOmapping="no" uniqueIDRef="UID_PARAM_6068"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r200;  range:-4000,4000; step:1; shape:slider" dataType="0004" actualValue="-6" dynamicUiInstances="slider,20,140" index="606C" nodeId="1" kickStatus="1" name="Actual Velocity" PDOmapping="TPDO" uniqueIDRef="UID_PARAM_606c"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="type:integer; range:0,65520" dataType="0006" actualValue="1000" subNumber="0" index="6073" defaultValue="0x0" nodeId="50" kickStatus="1" name="Max. Current/Torque [0.1%] (1-1000)" uniqueIDRef="UID_PARAM_6073"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:-2.14748e+09,2.14748e+09; step:5000" dataType="0004" actualValue="0" index="607D" lowLimit="-2147483647" defaultValue="-2147483647" nodeId="50" kickStatus="1" highLimit="2147483647" name="Softlimit - Min Pos [user units]" subIndex="01" PDOmapping="no" uniqueIDRef="UID_PARAM_607d01"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:-2.14748e+09,2.14748e+09; step:5000" dataType="0004" actualValue="0" index="607D" lowLimit="-2147483647" defaultValue="2147483647" nodeId="50" kickStatus="1" highLimit="2147483647" name="Softlimit - Max Pos [user units]" subIndex="02" PDOmapping="no" uniqueIDRef="UID_PARAM_607d02"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:0,4.29497e+09; step:5000" dataType="0007" actualValue="6000" subNumber="0" index="6081" nodeId="50" kickStatus="1" name="Positioning Mode - Target Velocity" uniqueIDRef="UID_PARAM_6081"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:1,20000; step:100" dataType="0007" actualValue="5000" index="6083" nodeId="1" kickStatus="1" name="Positioning Acceleration" PDOmapping="no" uniqueIDRef="UID_PARAM_6083"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; shape:dial; range:1,20000; step:100" dataType="0007" actualValue="3000" index="6084" nodeId="1" kickStatus="1" name="Positioning Deceleration" PDOmapping="no" uniqueIDRef="UID_PARAM_6084"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="type:integer; range:0,4.29497e+09" dataType="0007" actualValue="1" index="6091" lowLimit="0x1" defaultValue="0x1" nodeId="50" kickStatus="1" highLimit="0x1" name="Gear - Motor revolutions" subIndex="01" PDOmapping="no" uniqueIDRef="UID_PARAM_609101"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="type:integer; range:0,4.29497e+09" dataType="0007" actualValue="1" index="6091" lowLimit="0x1" defaultValue="0x1" nodeId="50" kickStatus="1" highLimit="0x1" name="Gear - Shaft revolutions" subIndex="02" PDOmapping="no" uniqueIDRef="UID_PARAM_609102"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="type:integer; range:0,4.29497e+09" dataType="0007" actualValue="360" index="6092" lowLimit="0x1" defaultValue="0x10000" nodeId="50" kickStatus="1" highLimit="0x1" name="Feed - Positions" subIndex="01" PDOmapping="no" uniqueIDRef="UID_PARAM_609201"/>
+       <CANopenSubObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="type:integer; range:0,4.29497e+09" dataType="0007" actualValue="1" index="6092" lowLimit="0x1" defaultValue="0x1" nodeId="50" kickStatus="1" highLimit="0x1" name="Feed - Revolutions" subIndex="02" PDOmapping="no" uniqueIDRef="UID_PARAM_609202"/>
+       <CANopenObject objectType="7" kickStatusTxt="15:47:12 read ok" kickUiFormat="updates:r,w; range:-2000,2000; step:1; shape:dial" dataType="0004" actualValue="0" dynamicUiInstances="dial,440,20" index="60FF" nodeId="1" kickStatus="1" name="Velocity Mode - Target Velocity" PDOmapping="RPDO" uniqueIDRef="UID_PARAM_60ff"/>
+      </CANopenObjectList>
+     </EditorObjects>
+    </docs>
+   </module>
+   <module description="MovingCap CODE" panelVisible="0" label="Script" userLevel="2" type="drive_canopen_python"/>
+   <properties>
+    <NodeId>50</NodeId>
+    <ConfigFilePath>mcslave_ethernet.xdd</ConfigFilePath>
+    <ScriptFileName>driveSimplePosTest.py</ScriptFileName>
+    <ScriptHostType>3</ScriptHostType>
+    <AccessKeySet/>
+    <TargetVelocity>157</TargetVelocity>
+   </properties>
+   <slave label="Communication" type="canusb"/>
+  </module>
+ </module>
+ <guistate>000000ff00000000fd0000000100000001000002cd00000279fc0100000001fb0000001800500072006f006a00650063007400200048006f006d006501000000f0000002cd0000006b00ffffff000000e90000027900000004000000040000000800000008fc00000001000000020000000100000016006d00610069006e0054006f006f006c0042006100720100000000ffffffff0000000000000000</guistate>
+ <projectinfo>created 2022-12-03T20:25:49 fullmo Kickdrive v3.3.1 heg, modified 2026-07-15T08:15:56 fullmo Kickdrive v3.5.0 heg</projectinfo>
+</KickdriveProject>
