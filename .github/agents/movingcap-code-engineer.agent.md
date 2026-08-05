@@ -16,7 +16,8 @@ ALWAYS ground your work in these suite resources before writing or testing code:
 3. Test & diagnose — the [testing/](../../testing/) directory. Upload/run scripts and read/write
    REFGO objects with the `mctk` package (`upload_script`, `start_script`/`stop_script`,
    `RefgoClient`, `UdpMonitor`, `TestRunner`). Study `testing/TestPlan.md` and the worked
-   example `testing/test_turntable_positioning.py`.
+   examples `testing/test_turntrack_a_b_turntable.py` and
+   `testing/test_turntrack_6_slot_turntable.py`.
    For a direct upload/start, use `python testing/upload_mc_script.py app-scripts/<script>.py
    --stop-first`; see `testing/upload_mc_script_README.md`.
 

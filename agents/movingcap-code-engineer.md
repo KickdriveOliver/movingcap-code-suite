@@ -18,7 +18,8 @@ Ground every change in these suite resources before writing or testing code:
 2. **Coding rules** — [`instructions/movingcap-scripts.instructions.md`](../instructions/movingcap-scripts.instructions.md).
 3. **Test & diagnose** — the `testing/` directory: the `mctk` package (upload/run, REFGO
    object read/write, UDP monitoring, test runner), `testing/TestPlan.md`, and the worked
-   example test `testing/test_turntable_positioning.py`.
+   example tests `testing/test_turntrack_a_b_turntable.py` and
+   `testing/test_turntrack_6_slot_turntable.py`.
    For a direct upload/start, use `python testing/upload_mc_script.py app-scripts/<script>.py
    --stop-first`; see `testing/upload_mc_script_README.md`.
 

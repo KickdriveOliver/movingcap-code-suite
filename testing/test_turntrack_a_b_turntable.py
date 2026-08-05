@@ -7,7 +7,7 @@ verifies the behaviour against UDP diagnostics and the actual-position object.
 
 Run from this directory (``testing/``) so ``import mctk`` resolves::
 
-    python test_turntable_positioning.py [DEVICE_IP]
+    python test_turntrack_a_b_turntable.py [DEVICE_IP]
 
 SAFETY: this enables the drive and PHYSICALLY MOVES the axis between 0 and 180
 degrees. Ensure the turntable can rotate freely before running.
@@ -63,7 +63,7 @@ def near(actual, expected, tol=POS_TOLERANCE):
 
 
 def main():
-    runner = TestRunner("test_turntable_positioning", device_ip=DEVICE_IP, script=SCRIPT_NAME)
+    runner = TestRunner("test_turntrack_a_b_turntable", device_ip=DEVICE_IP, script=SCRIPT_NAME)
 
     runner.section("Setup: stop script, clear config magic + inputs, upload")
     stop_script(DEVICE_IP)

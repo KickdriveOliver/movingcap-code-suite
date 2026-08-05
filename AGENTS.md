@@ -20,7 +20,8 @@ tooling to upload, run, and diagnose them.
 | `testing/mctk/` | Host-side test kit: upload/run, REFGO `OR`/`OW`, UDP monitor, test runner. |
 | `testing/upload_mc_script.py` | CLI to stop, upload, and optionally start a drive script from any working directory. |
 | `testing/upload_mc_script_README.md` | Upload CLI usage and options. |
-| `testing/test_turntable_positioning.py` | Worked functional test for the example app. |
+| `testing/test_turntrack_a_b_turntable.py` | Functional test for the A/B example app. |
+| `testing/test_turntrack_6_slot_turntable.py` | Basic functional test for the six-slot example app. |
 | `testing/TestPlan.md` | Generalized functional test plan. |
 
 ## Two kinds of Python — do not mix the rules

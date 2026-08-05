@@ -2,7 +2,8 @@
 
 A self-contained workspace for **developing and testing MovingCap CODE (MicroPython)
 applications** on [MovingCap](https://movingcap.de) Ethernet ETH servo drives
-(e.g. MovingCap turnTRACK 349 / MC349 ETH). It bundles everything an engineer — or an AI coding agent — needs to write a
+(e.g. MovingCap turnTRACK 349 / MC349 ETH or MovingCap flatTRACK / MCFLAT ETH). 
+It bundles everything an engineer — or an AI coding agent — needs to write a
 servo drive application, upload it to a real servo drive, run it, and verify its behaviour.
 
 It is designed to be dropped into any agentic coding tool (GitHub Copilot, Claude Code, and
@@ -12,15 +13,17 @@ Public repository at [movingcap-code-suite](https://github.com/KickdriveOliver/m
 
 ## About MovingCap
 [MovingCap](https://movingcap.de) is a family of intelligent compact servo drives by
-**Fullmo Drives GmbH** — motors with integrated control and Web & Python programmability for
-industrial, agricultural, and special applications (12/24/48/72 V DC or custom supply),
-communicating via EtherCAT, CANopen, Ethernet TCP/IP, or digital I/O. **MovingCap CODE** is
-the on-drive MicroPython environment that lets you run application logic directly on the
-drive. This suite targets the **MovingCap Ethernet ETH** servo drives range: 
+**Fullmo Drives GmbH** for industrial, agricultural, and special applications. The motors
+combine integrated control with web-based configuration and on-drive Python programmability.
+They operate from 12, 24, 48, or 72 V DC supplies (or custom supply variants) and communicate
+via EtherCAT, CANopen, Ethernet TCP/IP, or digital I/O. **MovingCap CODE** is the on-drive
+MicroPython engine that lets you run application logic directly on the drive. This suite
+targets the **MovingCap Ethernet ETH** servo drive range:
 MovingCap turnTRACK, flatTRACK, shortTRACK, FATtrack and pushTRACK.
 
 ## Audience
-Application builders / users of MovingCap servo drive products who want a reproducible, scriptable way to build and validate MovingCap servo drive applications.
+Application builders and MovingCap users who want a reproducible, scriptable way to develop
+and validate servo drive applications.
 
 ## What's inside
 
@@ -28,7 +31,9 @@ Application builders / users of MovingCap servo drive products who want a reprod
 movingcap-code-suite/
 ├─ app-scripts/         Servo drive-side MicroPython apps (MovingCap CODE)
 │   ├─ turntrack_a_b_turntable.py     ← A/B positioning example
+│   ├─ turntrack_a_b_turntable_README.md
 │   ├─ turntrack_6_slot_turntable.py  ← six-slot rotary-table example
+│   ├─ turntrack_6_slot_turntable_README.md
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
 ├─ skills/              "How to write MovingCap CODE" skill
 ├─ instructions/        Coding rules for app-scripts/**/*.py
@@ -38,7 +43,8 @@ movingcap-code-suite/
 │   ├─ mctk/            Host-side MovingCap Test Kit (CPython 3)
 │   ├─ upload_mc_script.py  One-command upload/start utility
 │   ├─ upload_mc_script_README.md  CLI reference
-│   ├─ test_turntable_positioning.py  ← functional test for the example
+│   ├─ test_turntrack_a_b_turntable.py  ← A/B example functional test
+│   ├─ test_turntrack_6_slot_turntable.py  ← six-slot example functional test
 │   ├─ TestPlan.md      Generalized functional test plan
 │   └─ results/         JSON test reports land here
 ├─ AGENTS.md            Tool-agnostic agent guide
@@ -65,12 +71,13 @@ ping 192.168.2.150
 
 # 3. Run the example functional test (uploads + runs + verifies on the drive)
 cd testing
-python test_turntable_positioning.py            # or: python test_turntable_positioning.py 192.168.2.150
+python test_turntrack_a_b_turntable.py
+# or: python test_turntrack_6_slot_turntable.py 192.168.2.150
 ```
 A JSON report is written to `testing/results/`. Exit code 0 = all checks passed (CI-friendly).
 
-> ⚠️ **Safety:** the example test ENABLES the servo drive and PHYSICALLY MOVES the axis between 0° and 180°. 
-> Ensure the turntable can rotate freely before running.
+> ⚠️ **Safety:** Both example tests enable the servo drive and physically move the axis.
+> Ensure the turntable can rotate freely through the tested range before running either test.
 
 To upload and start any application directly from the repository root:
 
@@ -82,8 +89,17 @@ The default drive IP is `192.168.2.150`; pass another IP positionally or with
 `--device-ip`. See [`testing/upload_mc_script_README.md`](testing/upload_mc_script_README.md).
 
 ## Using the test kit (`mctk`) directly
+Run this example from the `testing/` directory:
+
 ```python
-from mctk import RefgoClient, UdpMonitor, upload_script, start_script, stop_script
+from mctk import (
+    RefgoClient,
+    UdpMonitor,
+    input_mask,
+    start_script,
+    stop_script,
+    upload_script,
+)
 
 upload_script("192.168.2.150", "../app-scripts/turntrack_a_b_turntable.py")
 
@@ -94,7 +110,7 @@ with RefgoClient("192.168.2.150") as drive:
     print("status", drive.tell_status())          # TS
     print("position", drive.tell_position())       # TP
     drive.write_object(0x6073, 0x00, 1000)         # OW: max torque 100%
-    drive.simulate_inputs(0x10000)                 # virtual IN1 high
+    drive.pulse_inputs(input_mask(1))              # pulse virtual IN1
     print("actual pos", drive.actual_position())   # OR 6064h.00h
 
 stop_script("192.168.2.150")
@@ -115,25 +131,28 @@ monitor.stop()
 2. Copy `app-scripts/turntrack_a_b_turntable.py` or
    `app-scripts/turntrack_6_slot_turntable.py` as a starting point. Both demonstrate
    first-run defaults guarded by an application magic value.
-3. Use only documented APIs (the `app-scripts/*.pyi` stubs give you editor docs); no
-   f-strings; bounded `ChkReady`/`ChkError` waits; clean `EnableDrive`/`PowerQuit`.
+3. Use only documented APIs (the `app-scripts/*.pyi` stubs provide editor documentation)
+   and no f-strings. Follow the motion and error-handling pattern appropriate to the app:
+   bounded `ChkReady`/`ChkError` waits for direct motion commands, or configured drive
+   profiles and status outputs for event-driven applications.
 4. Upload quickly with `testing/upload_mc_script.py`, or add a functional test under
-   `testing/` modeled on `test_turntable_positioning.py` for repeatable validation.
+   `testing/` modeled on the `test_turntrack_*.py` examples for repeatable validation.
 
 ## Communication interfaces (reference)
 | Interface | Port | Use |
 |-----------|------|-----|
-| HTTP | 80 | Upload (`POST program.html`), start/stop (`?codeAct=3/4`) |
-| REFGO (TCP) | 10001 | ASCII object read/write (`OR`/`OW`), status/position (`TS`/`TP`) |
-| UDP debug | 14999 | Script `print()` output and drive diagnostics |
+| HTTP | 80 | drive app upload (`POST program.html`), start/stop (`?codeAct=3/4`) |
+| REFGO (TCP) | 10001 | REFGO ASCII object read/write (`OR`/`OW`), status/position (`TS`/`TP`) |
+| UDP debug | 14999 | Python `print()` console output; additional drive diagnostics |
 
 ## Related MovingCap resources
 - **Product & company:** https://movingcap.de — Fullmo Drives GmbH.
 - **MovingCap CODE manual:** https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html
 - **API documentation** (the `.pyi` stubs in `app-scripts/` mirror these):
-  https://movingcap.de/user/MovingCap-AnwenderDoku/2-MovingCap_ETH_Ethernet/MovingCap%20CODE%20Python/MovingCap_Import_Documentation/
-- **Example & demo collection:** https://github.com/KickdriveOliver/movingcap — a broad
-  collection of MovingCap examples, demos, applications, and scripts.
+  [mcdrive module reference](https://movingcap.de/user/MovingCap-AnwenderDoku/2-MovingCap_ETH_Ethernet/MovingCap%20CODE%20Python/MovingCap_Import_Documentation/mcdrive_pyi.txt)
+  and the other module references listed in the authoring skill.
+- **Example & demo collection:** [`KickdriveOliver/movingcap`](https://github.com/KickdriveOliver/movingcap). 
+  Dedicated repository for the example files (demos, applications, scripts) and docs-as-code source files (.md).
 
 The drive-script authoring rules and the full reference URL list also live in
 [`skills/movingcap-code-python-writer/SKILL.md`](skills/movingcap-code-python-writer/SKILL.md),
@@ -143,7 +162,7 @@ so AI agents working in this repo pick them up automatically.
 [`KickdriveOliver/movingcap`](https://github.com/KickdriveOliver/movingcap) is the broad
 collection of MovingCap examples and demos. **This** repository is a focused, installable
 toolkit for *agent-driven development and testing* of MovingCap CODE applications: the agent
-and skill definitions, the host-side `mctk` test kit, and a worked example. Use the examples
+and skill definitions, the host-side `mctk` test kit, and worked examples. Use the examples
 repo to browse drive-application ideas; use this suite to build, run, and verify your own.
 
 ## License

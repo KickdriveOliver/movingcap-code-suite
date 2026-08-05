@@ -31,8 +31,8 @@ structure applies to any drive application.
 5. Assert behaviour from UDP lines and object reads (`actual_position`, `tell_status`).
 6. Record results with `mctk.TestRunner` (JSON report in `testing/results/`).
 
-## 5. Worked example: `test_turntable_positioning.py`
-Run: `cd testing && python test_turntable_positioning.py [DEVICE_IP]`
+## 5. Worked example: `test_turntrack_a_b_turntable.py`
+Run: `cd testing && python test_turntrack_a_b_turntable.py [DEVICE_IP]`
 
 > ⚠️ Enables the drive and physically moves the axis between 0° and 180°.
 
