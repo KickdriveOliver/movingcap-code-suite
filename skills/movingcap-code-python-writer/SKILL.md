@@ -56,6 +56,15 @@ use the documented free user-parameter area:
 | unsigned32 | 340Fh | 01h–0Ah | Python unsigned32 N |
 | integer32 | 3410h | 01h–0Ah | Python integer32 N |
 
+### Upload and run
+For a direct upload/start from the repository root, use:
+```bash
+python testing/upload_mc_script.py app-scripts/<script>.py --stop-first
+```
+The default IP is `192.168.2.150`; use `--device-ip` to override it. See
+`testing/upload_mc_script_README.md`. For automated tests that need separate lifecycle
+control, use `mctk.upload_script`, `start_script`, and `stop_script`.
+
 ## Source of truth and reference URLs
 - MovingCap CODE manual: https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html
 - Simple test program: https://movingcap.de/webmanuals/mc-eth-sw-manual-en/ein-einfaches-testprogramm.html

@@ -8,7 +8,7 @@ runs anywhere CPython 3 does and is easy to drop into CI.
 Example::
 
     from mctk import TestRunner
-    t = TestRunner("driveTurntablePositioning", device_ip="192.168.2.150")
+    t = TestRunner("turntrack_a_b_turntable", device_ip="192.168.2.150")
     t.section("Startup")
     t.check("script started", monitor.has_line("started"))
     ok = t.finish(results_dir="results")

@@ -27,7 +27,8 @@ Application builders / users of MovingCap servo drive products who want a reprod
 ```
 movingcap-code-suite/
 ├─ app-scripts/         Servo drive-side MicroPython apps (MovingCap CODE)
-│   ├─ driveTurntablePositioning.py   ← worked example
+│   ├─ turntrack_a_b_turntable.py     ← A/B positioning example
+│   ├─ turntrack_6_slot_turntable.py  ← six-slot rotary-table example
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
 ├─ skills/              "How to write MovingCap CODE" skill
 ├─ instructions/        Coding rules for app-scripts/**/*.py
@@ -35,6 +36,8 @@ movingcap-code-suite/
 ├─ .github/             Copilot-native mirror of the agents/skills/instructions
 ├─ testing/
 │   ├─ mctk/            Host-side MovingCap Test Kit (CPython 3)
+│   ├─ upload_mc_script.py  One-command upload/start utility
+│   ├─ upload_mc_script_README.md  CLI reference
 │   ├─ test_turntable_positioning.py  ← functional test for the example
 │   ├─ TestPlan.md      Generalized functional test plan
 │   └─ results/         JSON test reports land here
@@ -69,11 +72,20 @@ A JSON report is written to `testing/results/`. Exit code 0 = all checks passed 
 > ⚠️ **Safety:** the example test ENABLES the servo drive and PHYSICALLY MOVES the axis between 0° and 180°. 
 > Ensure the turntable can rotate freely before running.
 
+To upload and start any application directly from the repository root:
+
+```bash
+python testing/upload_mc_script.py app-scripts/turntrack_6_slot_turntable.py --stop-first
+```
+
+The default drive IP is `192.168.2.150`; pass another IP positionally or with
+`--device-ip`. See [`testing/upload_mc_script_README.md`](testing/upload_mc_script_README.md).
+
 ## Using the test kit (`mctk`) directly
 ```python
 from mctk import RefgoClient, UdpMonitor, upload_script, start_script, stop_script
 
-upload_script("192.168.2.150", "../app-scripts/driveTurntablePositioning.py")
+upload_script("192.168.2.150", "../app-scripts/turntrack_a_b_turntable.py")
 
 monitor = UdpMonitor("192.168.2.150"); monitor.start()
 start_script("192.168.2.150")
@@ -100,10 +112,13 @@ monitor.stop()
 ## Writing your own drive app
 1. Read [`skills/movingcap-code-python-writer/SKILL.md`](skills/movingcap-code-python-writer/SKILL.md)
    and [`instructions/movingcap-scripts.instructions.md`](instructions/movingcap-scripts.instructions.md).
-2. Copy `app-scripts/driveTurntablePositioning.py` as a starting point.
+2. Copy `app-scripts/turntrack_a_b_turntable.py` or
+   `app-scripts/turntrack_6_slot_turntable.py` as a starting point. Both demonstrate
+   first-run defaults guarded by an application magic value.
 3. Use only documented APIs (the `app-scripts/*.pyi` stubs give you editor docs); no
    f-strings; bounded `ChkReady`/`ChkError` waits; clean `EnableDrive`/`PowerQuit`.
-4. Add a functional test under `testing/` modeled on `test_turntable_positioning.py`.
+4. Upload quickly with `testing/upload_mc_script.py`, or add a functional test under
+   `testing/` modeled on `test_turntable_positioning.py` for repeatable validation.
 
 ## Communication interfaces (reference)
 | Interface | Port | Use |
@@ -136,4 +151,3 @@ repo to browse drive-application ideas; use this suite to build, run, and verify
 
 The MovingCap CODE API stub files (`app-scripts/*.pyi`) are derived from MovingCap
 documentation by Fullmo Drives GmbH and are included for editor support and reference.
-

@@ -13,7 +13,7 @@ The drive exposes three relevant HTTP endpoints on port 80:
 Typical use::
 
     from mctk import upload_script, start_script, stop_script
-    upload_script("192.168.2.150", "app-scripts/driveTurntablePositioning.py")
+    upload_script("192.168.2.150", "app-scripts/turntrack_a_b_turntable.py")
     start_script("192.168.2.150")
     ...
     stop_script("192.168.2.150")

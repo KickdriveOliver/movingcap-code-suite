@@ -3,7 +3,7 @@
 ## 1. Purpose
 This plan describes how to functionally validate a MovingCap CODE (MicroPython) application
 on a MovingCap Ethernet ETH drive using the host-side `mctk` test kit. It is intentionally
-generic: the worked example targets `app-scripts/driveTurntablePositioning.py`, but the same
+generic: the worked example targets `app-scripts/turntrack_a_b_turntable.py`, but the same
 structure applies to any drive application.
 
 ## 2. Test environment
@@ -24,7 +24,8 @@ structure applies to any drive application.
 
 ## 4. General method
 1. Stop any running script; clear input simulation and (if used) the app's config-magic object.
-2. Upload the target script (`mctk.upload_script`).
+2. Upload the target script with `testing/upload_mc_script.py` for an interactive run, or
+   `mctk.upload_script` when the test controls start/stop separately.
 3. Start UDP monitoring (`mctk.UdpMonitor`) and start the script (`mctk.start_script`).
 4. Drive inputs / parameters via REFGO (`mctk.RefgoClient`) — e.g. `simulate_inputs(...)`.
 5. Assert behaviour from UDP lines and object reads (`actual_position`, `tell_status`).

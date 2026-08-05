@@ -17,6 +17,8 @@ ALWAYS ground your work in these suite resources before writing or testing code:
    REFGO objects with the `mctk` package (`upload_script`, `start_script`/`stop_script`,
    `RefgoClient`, `UdpMonitor`, `TestRunner`). Study `testing/TestPlan.md` and the worked
    example `testing/test_turntable_positioning.py`.
+   For a direct upload/start, use `python testing/upload_mc_script.py app-scripts/<script>.py
+   --stop-first`; see `testing/upload_mc_script_README.md`.
 
 ## Constraints
 - DO NOT invent MovingCap APIs or use desktop-Python / standard-library modules the skill does not document.
@@ -34,7 +36,8 @@ ALWAYS ground your work in these suite resources before writing or testing code:
 2. Write the MicroPython app using only documented APIs. Include bounded `mc.ChkReady()` /
    `mc.ChkError()` waits and clean enable/disable sequencing. Save it in `app-scripts/`.
 3. Target the drive at `192.168.2.150` unless the user specifies another IP, then upload and run
-   using the `mctk` helpers from the `testing/` directory. Warn about physical actuation.
+   using `testing/upload_mc_script.py` for a direct upload/start, or the lower-level `mctk`
+   helpers when tests need separate control. Warn about physical actuation.
 4. Capture UDP diagnostics and object/status values; compare observed behavior against the spec.
 5. Iterate: fix the script, re-upload, re-run until the spec is met. Track multi-step work with a todo list.
 

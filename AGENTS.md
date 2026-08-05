@@ -12,12 +12,14 @@ tooling to upload, run, and diagnose them.
 ## Map of the suite
 | Path | Purpose |
 |------|---------|
-| `app-scripts/` | Drive-side MicroPython application scripts (e.g. `driveTurntablePositioning.py`). |
+| `app-scripts/` | Drive-side MicroPython application scripts, including `turntrack_a_b_turntable.py` and `turntrack_6_slot_turntable.py`. |
 | `app-scripts/*.pyi` | Authoritative MovingCap CODE API stubs (`mcdrive/mcnet/refgo/sys/time.pyi`), kept beside the drive scripts so editors (VS Code/Pylance) resolve imports and show inline docs. |
 | `skills/movingcap-code-python-writer/SKILL.md` | How to write MovingCap CODE; key APIs and rules. |
 | `instructions/movingcap-scripts.instructions.md` | Hard coding rules for `app-scripts/**/*.py`. |
 | `agents/` | Engineer and reviewer agent definitions (portable). |
 | `testing/mctk/` | Host-side test kit: upload/run, REFGO `OR`/`OW`, UDP monitor, test runner. |
+| `testing/upload_mc_script.py` | CLI to stop, upload, and optionally start a drive script from any working directory. |
+| `testing/upload_mc_script_README.md` | Upload CLI usage and options. |
 | `testing/test_turntable_positioning.py` | Worked functional test for the example app. |
 | `testing/TestPlan.md` | Generalized functional test plan. |
 
@@ -30,8 +32,10 @@ tooling to upload, run, and diagnose them.
 ## Typical workflow
 1. Read the skill + instructions. Restate the spec as concrete, testable behaviors.
 2. Write/adapt the drive script in `app-scripts/` using documented APIs only.
-3. From `testing/`, upload + run with `mctk` and verify against UDP/REFGO output and the TestPlan.
-4. Iterate until the spec is met. Flag any physical actuation (motion/power/outputs).
+3. Upload with `python testing/upload_mc_script.py app-scripts/<script>.py --stop-first`,
+   or use `mctk` directly for test automation.
+4. Verify against UDP/REFGO output and the TestPlan.
+5. Iterate until the spec is met. Flag any physical actuation (motion/power/outputs).
 
 ## Safety
 The drive can physically move. Confirm the axis can move freely before running, and never

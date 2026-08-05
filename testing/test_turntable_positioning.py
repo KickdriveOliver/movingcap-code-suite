@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Functional test for app-scripts/driveTurntablePositioning.py.
+"""Functional test for app-scripts/turntrack_a_b_turntable.py.
 
 Host-side (desktop CPython 3) test. It uploads the example MovingCap CODE app to
 a real drive, runs it, drives it through the REFGO virtual-input interface, and
@@ -35,12 +35,12 @@ from mctk import (
 # Configuration
 # ---------------------------------------------------------------------------
 DEVICE_IP = sys.argv[1] if len(sys.argv) > 1 else "192.168.2.150"
-SCRIPT_NAME = "driveTurntablePositioning.py"
+SCRIPT_NAME = "turntrack_a_b_turntable.py"
 SCRIPT_PATH = os.path.normpath(os.path.join(THIS_DIR, "..", "app-scripts", SCRIPT_NAME))
 RESULTS_DIR = os.path.join(THIS_DIR, "results")
 
 # Must match the values in the drive script.
-APP_MAGIC_NUMBER = 0x7475726E
+APP_MAGIC_NUMBER = 0x74756162
 CONFIG_INDEX = 0x3410
 CONFIG_SUBINDEX = 0x01
 POS_A = 0
@@ -95,7 +95,7 @@ def main():
     # -- TC-01: startup + first-run parameter init ---------------------------
     runner.section("TC-01: startup and first-run parameter init")
     time.sleep(STARTUP_WAIT_S)
-    runner.check("TC-01 startup message", monitor.has_line("driveTurntablePositioning started"),
+    runner.check("TC-01 startup message", monitor.has_line("turntrack_a_b_turntable started"),
                  "UDP startup print received")
     runner.check("TC-01 first-run init", monitor.has_line("First run: writing default parameters"),
                  "cleared magic triggered parameter write")

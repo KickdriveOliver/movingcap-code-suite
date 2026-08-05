@@ -15,6 +15,7 @@ uploading, running, or modifying anything.
   and [`instructions/movingcap-scripts.instructions.md`](../instructions/movingcap-scripts.instructions.md).
 - Behavior expectations: [`testing/TestPlan.md`](../testing/TestPlan.md) and the example app
   in `app-scripts/`.
+- Deployment reference (read-only): [`testing/upload_mc_script_README.md`](../testing/upload_mc_script_README.md).
 
 ## Constraints
 - DO NOT edit files, upload scripts, run scripts, or execute any terminal command — read-only.

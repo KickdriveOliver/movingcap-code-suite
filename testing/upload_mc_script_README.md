@@ -39,7 +39,7 @@ python upload_mc_script.py SCRIPT_PATH [DEVICE_IP] [options]
 
 Upload and start a script on the default drive IP (`192.168.2.150`):
 ```bash
-python upload_mc_script.py app-scripts/driveTurntablePositioning.py
+python upload_mc_script.py app-scripts/turntrack_a_b_turntable.py
 ```
 
 Upload and start on a specific drive IP (positional shortcut):
@@ -64,7 +64,7 @@ python upload_mc_script.py my_script.py --no-start
 
 Call from any directory using an absolute path to the script:
 ```bash
-python E:\work\Repos\movingcaptcpextern.mcslavetcp\functional_testing\upload_mc_script.py C:\scripts\my_script.py
+python C:\repos\movingcap-code-suite\testing\upload_mc_script.py C:\scripts\my_script.py
 ```
 
 ---

@@ -8,7 +8,7 @@ caller's cwd).
 
 Usage:
     python upload_mc_script.py SCRIPT_PATH [DEVICE_IP] [options]
-    python upload_mc_script.py app-scripts/driveTurntablePositioning.py
+    python upload_mc_script.py app-scripts/turntrack_a_b_turntable.py
     python upload_mc_script.py my_script.py 192.168.2.50
     python upload_mc_script.py my_script.py --device-ip 192.168.2.50 --no-start
     python upload_mc_script.py my_script.py --stop-first

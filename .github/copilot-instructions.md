@@ -13,6 +13,9 @@ uploads, runs, and diagnoses them.
 - Host tooling: the [testing/mctk/](../testing/mctk/) package — `uploader.py`, `refgo.py`
   (REFGO `OR`/`OW`, `TS`/`TP`, virtual inputs), `udp.py`, `runner.py` — plus
   [testing/TestPlan.md](../testing/TestPlan.md) and the worked example test.
+- Direct upload CLI: [testing/upload_mc_script.py](../testing/upload_mc_script.py), documented
+  in [testing/upload_mc_script_README.md](../testing/upload_mc_script_README.md). Use
+  `python testing/upload_mc_script.py app-scripts/<script>.py --stop-first` for quick upload/run.
 - Generated drive application scripts live in [app-scripts/](../app-scripts/).
 
 ## Two kinds of Python in this repo
