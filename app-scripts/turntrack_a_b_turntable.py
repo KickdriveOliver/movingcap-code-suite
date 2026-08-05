@@ -1,4 +1,4 @@
-# driveTurntablePositioning.py
+#id turntrack_a_b_turntable.py oh 2028-06-05
 # MovingCap CODE (MicroPython) example application for MovingCap Ethernet ETH.
 # www.movingcap.de
 #
@@ -42,7 +42,7 @@ MOTION_TIMEOUT_MS = 8000  # give up waiting for a move after this long
 # script sees the magic and skips the (slower) parameter init.
 CONFIG_INDEX = 0x3410
 CONFIG_SUBINDEX = 0x01
-APP_MAGIC_NUMBER = 0x7475726E   # arbitrary marker for THIS application's config
+APP_MAGIC_NUMBER = 0x74756162   # arbitrary marker for THIS application's config
 
 # ---------------------------------------------------------------------------
 # Default parameters, written only on the first run (Kickdrive export format:
@@ -53,12 +53,6 @@ MOTOR_PARAMETERS = """
 050.3401h.15h,unsigned16,1000  # Acc. torque [0.1%]
 050.3401h.16h,unsigned16,1000  # Dec. torque [0.1%]
 050.3401h.18h,unsigned16,1000  # Stall torque [0.1%]
-050.3511h.01h,unsigned16,0     # IN1 function = none (we read IN1 in script)
-050.3512h.01h,unsigned16,0     # IN2 function = none
-050.3513h.01h,unsigned16,0     # IN3 function = none
-050.3514h.01h,unsigned16,0     # IN4 function = none
-050.3611h.01h,unsigned16,0     # OUT1 function = none (we drive OUT1 in script)
-050.3612h.01h,unsigned16,0     # OUT2 function = none
 050.6073h.00h,unsigned16,1000  # Max current/torque [0.1%]
 050.6091h.01h,unsigned32,5     # Gear: motor revolutions
 050.6091h.02h,unsigned32,1     # Gear: shaft revolutions
@@ -67,10 +61,16 @@ MOTOR_PARAMETERS = """
 """
 
 APP_PARAMETERS = """
+050.3511h.01h,unsigned16,0     # IN1 function = none (we read IN1 in script)
+050.3512h.01h,unsigned16,0     # IN2 function = none
+050.3513h.01h,unsigned16,0     # IN3 function = none
+050.3514h.01h,unsigned16,0     # IN4 function = none
+050.3611h.01h,unsigned16,0     # OUT1 function = none (we drive OUT1 in script)
+050.3612h.01h,unsigned16,0     # OUT2 function = none
 050.6067h.00h,unsigned32,1     # Target reached window [user units]
 050.6068h.00h,unsigned16,200   # Target window time [ms]
-050.607dh.01h,integer32,-3600  # Soft limit min position [user units]
-050.607dh.02h,integer32,3600   # Soft limit max position [user units]
+050.607dh.01h,integer32,-360   # Soft limit min position [user units]
+050.607dh.02h,integer32,360    # Soft limit max position [user units]
 050.60f2h.00h,unsigned16,0     # Positioning option code (absolute)
 """
 
@@ -137,7 +137,7 @@ def WaitRisingEdge(inputNo):
 # ---------------------------------------------------------------------------
 # Startup
 # ---------------------------------------------------------------------------
-print('driveTurntablePositioning started')
+print('turntrack_a_b_turntable started')
 ApplyParametersIfFirstRun()
 
 mc.ClearOut(OUT_CONFIRM)         # ensure confirm output starts low
