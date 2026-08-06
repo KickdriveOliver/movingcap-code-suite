@@ -17,12 +17,12 @@ relative to its own file location, not relative to the caller's cwd.
 Install with:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-(`requirements.txt` lives next to this script in `functional_testing/` and covers
-the whole `mctk` toolkit — it is the only third-party dependency used across all
-`mctk` modules and test scripts.)
+Run that command from the repository root. The root `requirements.txt` covers the
+whole `mctk` toolkit and is the only third-party dependency used across its modules
+and test scripts.
 
 Your computer also needs an IP address reachable by the target drive (typically
 the `192.168.2.x` subnet, e.g. `192.168.2.100`).

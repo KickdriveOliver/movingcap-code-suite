@@ -1,8 +1,8 @@
 # MovingCap CODE Suite — Copilot Instructions
 
 This workspace develops and tests **MovingCap CODE (MicroPython)** application scripts for
-MovingCap Ethernet ETH servo drives (MC349 ETH), plus the host-side Python tooling that
-uploads, runs, and diagnoses them.
+MovingCap Ethernet ETH servo drives, including turnTRACK/MC349 and flatTRACK/MCFLAT, plus
+the host-side Python tooling that uploads, runs, and diagnoses them.
 
 ## Key resources
 - Drive-script authoring & API reference:
@@ -12,11 +12,14 @@ uploads, runs, and diagnoses them.
   [.github/instructions/movingcap-scripts.instructions.md](instructions/movingcap-scripts.instructions.md).
 - Host tooling: the [testing/mctk/](../testing/mctk/) package — `uploader.py`, `refgo.py`
   (REFGO `OR`/`OW`, `TS`/`TP`, virtual inputs), `udp.py`, `runner.py` — plus
-  [testing/TestPlan.md](../testing/TestPlan.md) and the worked example test.
+  [testing/TestPlan.md](../testing/TestPlan.md) and the worked example tests.
 - Direct upload CLI: [testing/upload_mc_script.py](../testing/upload_mc_script.py), documented
   in [testing/upload_mc_script_README.md](../testing/upload_mc_script_README.md). Use
   `python testing/upload_mc_script.py app-scripts/<script>.py --stop-first` for quick upload/run.
 - Generated drive application scripts live in [app-scripts/](../app-scripts/).
+- Kickdrive project authoring: [kickdrive-project-writer/SKILL.md](skills/kickdrive-project-writer/SKILL.md);
+  use [flattrack_testing_example.kickpro](../kickdrive-projects/flattrack_testing_example/flattrack_testing_example.kickpro)
+  as the working blueprint for setup, service, scope, and parameter configuration.
 
 ## Two kinds of Python in this repo
 1. **Drive-side MicroPython** (in `app-scripts/`): runs on the drive via MovingCap CODE.

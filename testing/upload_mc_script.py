@@ -2,9 +2,8 @@
 """Upload and start a MovingCap CODE (MicroPython) script on a drive.
 
 Thin CLI wrapper around :mod:`mctk.uploader` that can be invoked from *any*
-current working directory (the ``functional_testing`` folder containing the
-``mctk`` package is located relative to this file, not relative to the
-caller's cwd).
+current working directory (the ``testing`` folder containing the ``mctk``
+package is located relative to this file, not relative to the caller's cwd).
 
 Usage:
     python upload_mc_script.py SCRIPT_PATH [DEVICE_IP] [options]

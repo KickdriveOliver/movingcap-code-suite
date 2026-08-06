@@ -6,15 +6,17 @@ others) working in this suite. GitHub Copilot also reads the mirrored files unde
 
 ## What this suite is
 A self-contained workspace for **developing and testing MovingCap CODE (MicroPython)**
-applications on MovingCap Ethernet ETH servo drives (MC349 ETH), with host-side Python
-tooling to upload, run, and diagnose them.
+applications on MovingCap Ethernet ETH servo drives, including turnTRACK/MC349 and
+flatTRACK/MCFLAT, with host-side Python tooling to upload, run, and diagnose them.
 
 ## Map of the suite
 | Path | Purpose |
 |------|---------|
-| `app-scripts/` | Drive-side MicroPython application scripts, including `turntrack_a_b_turntable.py` and `turntrack_6_slot_turntable.py`. |
+| `app-scripts/` | Drive-side MicroPython applications, including two turnTRACK examples and the flatTRACK/shortTRACK `flattrack_demo.py`. |
 | `app-scripts/*.pyi` | Authoritative MovingCap CODE API stubs (`mcdrive/mcnet/refgo/sys/time.pyi`), kept beside the drive scripts so editors (VS Code/Pylance) resolve imports and show inline docs. |
 | `skills/movingcap-code-python-writer/SKILL.md` | How to write MovingCap CODE; key APIs and rules. |
+| `skills/kickdrive-project-writer/SKILL.md` | Companion skill for fullmo Kickdrive `.kickpro` drive configuration and CANopen parameter management (host-side config, not on-drive code). |
+| `kickdrive-projects/flattrack_testing_example/` | Working Kickdrive setup, service, parameter-configuration, scope, and motion-test blueprint. |
 | `instructions/movingcap-scripts.instructions.md` | Hard coding rules for `app-scripts/**/*.py`. |
 | `agents/` | Engineer and reviewer agent definitions (portable). |
 | `testing/mctk/` | Host-side test kit: upload/run, REFGO `OR`/`OW`, UDP monitor, test runner. |
@@ -26,7 +28,9 @@ tooling to upload, run, and diagnose them.
 
 ## Two kinds of Python — do not mix the rules
 1. **Drive-side MicroPython** (`app-scripts/`): documented MovingCap APIs only, **no f-strings**,
-   prefer `time.sleep_ms`, bounded `ChkReady`/`ChkError` waits, clean `EnableDrive`/`PowerQuit`.
+   and prefer `time.sleep_ms`. Use bounded status/error waits for applications that should
+   recover autonomously. A diagnostic motion demo may intentionally block so an operator
+   investigates a failed move; document that behavior explicitly.
 2. **Host-side CPython** (`testing/`): ordinary desktop Python 3; f-strings and the standard
    library are fine. Only dependency is `requests` (see `requirements.txt`).
 

@@ -30,6 +30,9 @@ jobs:
       - name: Byte-compile all Python (host + drive scripts)
         run: python -m compileall testing app-scripts
 
+      - name: Parse Kickdrive XML
+        run: python -c "import pathlib, xml.etree.ElementTree as ET; [ET.parse(path) for pattern in ('*.kickpro', '*.xdd') for path in pathlib.Path('kickdrive-projects').rglob(pattern)]"
+
       - name: Import the mctk package
         working-directory: testing
         run: python -c "import mctk; print('mctk', mctk.__version__)"

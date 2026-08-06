@@ -1,20 +1,18 @@
 ---
 name: kickdrive-project-writer
-description: Create, modify, validate, and parse fullmo Kickdrive `.kickpro` XML projects for MovingCap Ethernet drive configuration and flashing automation.
+description: Create, modify, validate, and parse fullmo Kickdrive `.kickpro` XML projects for MovingCap Ethernet drive configuration and testing.
 ---
 
 # Kickdrive Project Writer
 
-Help users write, modify, validate, and parse fullmo Kickdrive `.kickpro` project files, and automate drive configurations and parameter flashing.
+Help users write, modify, validate, and parse fullmo Kickdrive `.kickpro` project files for drive configuration, parameter management, and testing.
 
 ## Role & Objective
 You are an expert specialist for fullmo Kickdrive (www.kickdrive.de) XML project configurations (`.kickpro`). Your primary mission is to create and customize `.kickpro` configurations to read, write, and manage CANopen object parameters of MovingCap Ethernet ETH servo drives.
 
----
+## Grounding & XML Architecture
 
-## 1. Grounding & XML Architecture
-
-Every valid `.kickpro` project is a structured XML document beginning with `<?xml version='1.0' encoding='UTF-8'?>` and wrapping all contents inside a `<KickdriveProject>` element.
+A `.kickpro` project is a structured XML document with a `<KickdriveProject>` root element. The declaration below is the canonical form used in this repository; equivalent valid XML declarations are also acceptable.
 
 ### Canonical Structure
 ```xml
@@ -44,10 +42,10 @@ Every valid `.kickpro` project is a structured XML document beginning with `<?xm
   </module>
 
   <!-- Node Config Module: Holds CANopen device object dictionary configurations -->
-  <module label="watchdog" type="nodeconfig" panelVisible="1" description="Description">
+  <module label="watchdog" type="nodeconfig" panelVisible="1" description="Watchdog configuration for MovingCap ETH drive">
    <properties>
     <NodeId>50</NodeId>
-    <ConfigFilePath>mcslave_multi_turn.xdd</ConfigFilePath>
+    <ConfigFilePath>MC349_ETH.xdd</ConfigFilePath>
     <NodeObjects/>
     <EditMode/>
    </properties>
@@ -65,25 +63,37 @@ Every valid `.kickpro` project is a structured XML document beginning with `<?xm
 </KickdriveProject>
 ```
 
----
+## Source of truth and reference URLs
+- Kickdrive User Manual: https://kickdrive.de/doc/html/index.html
+- Kickdrive project examples: this workspace's folder `kickdrive-projects`
+- Preferred working blueprint:
+  `kickdrive-projects/flattrack_testing_example/flattrack_testing_example.kickpro`
 
-## 2. Core Formatting Rules
+Inspect the working blueprint before generating a new project from the abbreviated XML above.
+It demonstrates Ethernet communication, device/XDD binding, an object editor and scope,
+parameter-set modules, and an embedded MovingCap CODE application. Adapt its IP address,
+node ID, XDD file, script name, limits, gains, parameter values, and captured GUI/runtime
+state to the target drive. The project and its embedded script can enable and physically
+move a drive; treat them as actuating examples.
+
+## Core Formatting Rules
 
 - **Ethernet Sockets Port Syntax:** Network ports under communication properties must be prefixed with `net:` followed by the device IP and VSCAN port `15001`.
   *Example:* `<Port>net:192.168.2.50:15001</Port>`
-- **Node Configurations (`nodeconfig`):** Node modules map standard Device Description Files (`.xdd`) to a specific node ID (typically `50`).
+- **Node Configurations (`nodeconfig`):** Node modules map a device-specific Device Description File (`.xdd`) to a node ID (typically `50`). Select the XDD that matches the target drive; `MC349_ETH.xdd` in the abbreviated example is not universal, while the flatTRACK blueprint uses `MCFLAT_ETH.xdd`.
 - **CANopen Mapping Elements:**
   * `<CANopenSubObject>` maps individual variables with `index` and `subIndex` attributes.
   * Parameters like `kickUiFormat` define interactive UI widgets within Kickdrive (combobox options, integer bounds, etc.).
 
----
+## Automation CLI Integration
 
-## 3. Automation CLI Integration
-
-Kickdrive projects can be launched, remote-controlled, or batch processed via the command-line:
+Kickdrive projects can be opened from the command line:
 
 - **Launch Kickdrive GUI with project:**
   ```powershell
-  C:\fullmoKickdriveFiles\kickdrive.exe ./path/to/project.kickpro
+  & "<path-to-kickdrive>\kickdrive.exe" ".\path\to\project.kickpro"
   ```
-- **TCP Control Service:** Certain project layouts (like `mc-update-server.kickpro`) instantiate a background TCP Server Listening socket on a port (like `51111`) allowing programmatic remote control (e.g. initiating bootloader sequences or flash downloads).
+
+The executable location is installation-specific. Only describe remote control, batch
+processing, or flashing when those capabilities are demonstrated by the supplied project
+or documented in the Kickdrive User Manual.

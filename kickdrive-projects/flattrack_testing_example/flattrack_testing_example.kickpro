@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<KickdriveProject>
+ <module label="Project Home" panelVisible="1" type="project">
+  <docs>
+   <default>
+    <html>
+     <head>
+      <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+       <title>MovingCap Ethernet Drives</title>
+      </meta>
+      <link href="template.css" rel="stylesheet" type="text/css"/>
+     </head>
+     <body>
+      <h1>MovingCap flatTRACK Testing Example</h1>
+      <p>This known-working Kickdrive project is a blueprint for setup, service, parameter configuration, and motion testing of a MovingCap flatTRACK or shortTRACK Ethernet drive. It combines Ethernet communication, drive setup, an object editor, scope and trigger views, reusable parameter sets, and the embedded <strong>flattrack_demo.py</strong> MovingCap CODE application.</p>
+      <p>The saved project contains values captured from the system on which it was prepared, including parameter readouts, timestamps, plot state, and user-interface state. Treat these as an illustrative project snapshot, not as prescribed settings. Before connecting or writing parameters, verify the drive IP address, node ID, matching XDD file, soft limits, controller gains, payload data, current limits, and every motion parameter for the target mechanics.</p>
+      <p><strong>Safety:</strong> Starting the embedded script enables the drive and moves the axis automatically and continuously. The script intentionally waits without a timeout for target reached and fault clearance. This is diagnostic behavior: if a move does not complete, inspect the drive status, active fault, mechanics, and configuration rather than expecting an automatic recovery.</p>
+      <h2>How to use this project</h2>
+      <ul>
+       <li>Connect the PC and MovingCap Ethernet drive to the same network.</li>
+       <li>Make sure the drive and PC are in the same IP subnet.<br/>&#xd;
+	   The default MovingCap IPv4 address is <strong>192.168.2.150</strong>. For example, configure the PC network interface as 192.168.2.10 with prefix length 24 (subnet mask 255.255.255.0).</li>
+       <li>Open the <a href="#app:panel,Communication">Communication</a> module and check if the IP address is the same as your MovingCap Ethernet drive.<br/>&#xd;
+	   Tip: The MovingCap Ethernet status LED uses Morse code to indicate the current IP address. A Morse-code app can help decode the blinking LED.&#xd;
+	   </li>
+       <li>Switch on the drive power supply and confirm that the axis can move safely.</li>
+       <li>Open <a href="#app:panel,MC Eth Drive - Setup">MC Eth Drive - Setup</a> to identify and commission the drive. Do not start motion until the project settings have been checked.</li>
+       <li>Use <a href="#app:panel,MC Eth Drive - Object Editor">MC Eth Drive - Object Editor</a> to inspect or modify selected CiA 402 and MovingCap parameters.</li>
+       <li>Review the parameter-set modules before reading from or writing to the drive. Their values are examples for the original flatTRACK test system and may not suit another motor or mechanism.</li>
+       <li>Open <a href="#app:panel,Scope">Scope</a>, drag one or more parameters from the Object Editor to the Scope &#xd;
+	   area, and press 'Start' to sample. Double-click a parameter to create a plot.&#xd;
+	   	<br/>&#xd;
+	    Use the 'Record' button to store sampled data in a file. By default, the file is stored with the %%AppTitle%% project data. Use 'Open' in the Scope toolbar to load a recording, and use 'Save Project' in the main toolbar to store the relevant data in a '.kickzip' project file.	   &#xd;&#xd;&#xd;&#xd;&#xd;&#xd;
+	   <br/>&#xd;
+	   Use <a href="#app:panel,Scope - Trigger">Scope - Trigger</a> to define trigger conditions and record measurements immediately before and &#xd;&#xd;&#xd;&#xd;&#xd;&#xd;
+	   after a trigger event. &#xd;
+	   </li>
+      </ul>
+     </body>
+    </html>
+   </default>
+  </docs>
+  <module label="Communication" description="Allows CAN-style communication via TCP or CAN bus" panelVisible="0" type="canusb">
+   <module label="CAN Monitor" panelVisible="0" type="canmonitor"/>
+   <properties>
+    <Port>net:192.168.2.150:15001</Port>
+    <Baudrate>250K</Baudrate>
+    <DebugMode>0</DebugMode>
+    <MonitorFilter0>id = 81-ff # emergency msg only</MonitorFilter0>
+    <MonitorFilter1>id != 81-ff # hide emergency msg</MonitorFilter1>
+    <MonitorFilter2>dir = tx # tx data only</MonitorFilter2>
+    <MonitorFilter3>exclude index = 6063, index = 606c # hide pos/velocity readout</MonitorFilter3>
+    <MonitorFilter4>index = 6041 # show drive status only</MonitorFilter4>
+    <MonitorFilter5>data = 80 * # show SDO abort transfer / error codes</MonitorFilter5>
+   </properties>
+  </module>
+  <module userLevel="1" label="Scope" description="Scope / Data Logger" panelVisible="0" dragDropMode="1" type="datalog">
+   <module label="Trigger" panelVisible="0" type="trigger"/>
+   <docs>
+    <DisplayedKickPlots>
+     <Containers/>
+    </DisplayedKickPlots>
+    <MonitoringObjects>
+     <CANopenObjectList>
+      <CANopenObject index="6064" name="pos[mm]" nodeId="50" kickScaling="0.001" actualValue="43005" dataType="0004" objectType="7" uniqueIDRef="UID_PARAM_6064" PDOmapping="TPDO" monitorInterval="2" kickUiFormat="updates:r200; shape:slider; range:-32768,32768; step:1"/>
+      <CANopenObject accessType="ro" index="60F4" name="ferr" nodeId="50" actualValue="5" dataType="0004" objectType="7" uniqueIDRef="UID_PARAM_60f4" PDOmapping="no" monitorInterval="2" kickUiFormat="updates:r1000; shape:slider; range:-2.14748e+09,2.14748e+09; step:5000"/>
+     </CANopenObjectList>
+    </MonitoringObjects>
+   </docs>
+   <properties>
+    <TriggerConfig>050.60F4h.00h &lt; 50;050.60F4h.00h > -50</TriggerConfig>
+    <PreTriggerTimeMsec>100</PreTriggerTimeMsec>
+    <PostTriggerTimeMsec>200</PostTriggerTimeMsec>
+    <TriggerState>1</TriggerState>
+   </properties>
+   <module userLevel="1" label="Pos-Err" description="Scope Panel" panelVisible="0" type="datalog_plot">
+    <docs>
+     <PlotConfigurationDoc>
+      <PlotConfiguration xScale="200 msec/div" yScale="a" title="Pos-Err" cursorPosition="10">
+       <Curves>
+        <CurveConfiguration colorName="#000080" objectName="050.6064h.00h pos[mm]" dataObjectId="050.6064h.00h"/>
+        <CurveConfiguration colorName="#800000" objectName="050.60f4h.00h ferr" dataObjectId="050.60f4h.00h"/>
+       </Curves>
+      </PlotConfiguration>
+     </PlotConfigurationDoc>
+    </docs>
+   </module>
+   <slave label="Communication" type="canusb"/>
+  </module>
+  <module label="MC Eth Drive" description="MovingCap Ethernet Drive" panelVisible="0" type="drive_vdc">
+   <module userLevel="1" label="Setup" description="Initial Setup and Test" panelVisible="0" type="drive_canopen_setup"/>
+   <module userLevel="1" label="Object Editor" description="Read/Edit/Write Drive Parameters" panelVisible="0" type="drive_canopen_objects">
+    <docs>
+     <EditorObjects>
+      <CANopenObjectList>
+       <CANopenObject accessType="ro" kickStatusTxt="15:42:25 read ok" index="6064" name="Position actual value" nodeId="50" actualValue="33214" defaultValue="0" dataType="0004" kickStatus="1" objectType="7" uniqueIDRef="UID_PARAM_6064" PDOmapping="TPDO" kickUiFormat="updates:r1000; shape:slider; range:-2.14748e+09,2.14748e+09; step:5000"/>
+       <CANopenObject accessType="ro" kickStatusTxt="15:42:25 read ok" index="606C" name="Velocity actual value" nodeId="50" actualValue="-22187" defaultValue="0" dataType="0004" kickStatus="1" objectType="7" uniqueIDRef="UID_PARAM_606c" PDOmapping="TPDO" kickUiFormat="updates:r1000; shape:slider; range:-2.14748e+09,2.14748e+09; step:5000"/>
+       <CANopenObject accessType="ro" kickStatusTxt="15:42:25 read ok" index="60F4" name="Following error actual value" nodeId="50" actualValue="5" dataType="0004" kickStatus="1" objectType="7" uniqueIDRef="UID_PARAM_60f4" PDOmapping="no" kickUiFormat="updates:r1000; shape:slider; range:-2.14748e+09,2.14748e+09; step:5000"/>
+      </CANopenObjectList>
+     </EditorObjects>
+    </docs>
+   </module>
+   <module userLevel="2" label="Script" description="MovingCap CODE" panelVisible="0" type="drive_canopen_python"/>
+   <properties>
+    <NodeId>50</NodeId>
+    <ConfigFilePath>MCFLAT_ETH.xdd</ConfigFilePath>
+    <ScriptFileName>flattrack_demo.py</ScriptFileName>
+    <ScriptHostType>3</ScriptHostType>
+    <AccessKeySet/>
+    <TargetVelocity>157</TargetVelocity>
+    <ScriptDebugMode>0</ScriptDebugMode>
+   </properties>
+   <slave label="Communication" type="canusb"/>
+  </module>
+  <module label="flatTRACK_General_Movement_Settings" description="MovingCap Drive parameter set - Softlimit, Quick Stop, Target Window, Max Current" panelVisible="0" type="nodeconfig">
+   <properties>
+    <NodeId>50</NodeId>
+    <ConfigFilePath>MCFLAT_ETH.xdd</ConfigFilePath>
+    <NodeObjects/>
+    <EditMode/>
+   </properties>
+   <docs>
+    <SetupObjects>
+     <CANopenObjectList>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:17 read ok" index="607D" name="Softlimit - Min Pos [user units]" subIndex="01" nodeId="50" kickComment="minimal possible target position (or minimum value of rotary coordinates)" actualValue="0" defaultValue="-2147483647" dataType="0004" kickStatus="1" objectType="7" PDOmapping="no" kickUiFormat="type:integer; range:-2.14748e+09,2.14748e+09"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:17 read ok" index="607D" name="Softlimit - Max Pos [user units]" subIndex="02" nodeId="50" kickComment="maximal possible target position (or maximum value of rotary coordinates)" actualValue="46000" defaultValue="2147483647" dataType="0004" kickStatus="1" objectType="7" PDOmapping="no" kickUiFormat="type:integer; range:-2.14748e+09,2.14748e+09"/>
+      <CANopenObject accessType="rw" kickStatusTxt="16:03:17 read ok" index="6085" name="Quick Stop Deceleration [user units/s^2]" nodeId="50" kickComment="Deceleration used for quick stop / power off ramp-down" actualValue="20000" defaultValue="0x3E8" subNumber="0" dataType="0007" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:0,4.29497e+09"/>
+      <CANopenObject accessType="rw" kickStatusTxt="16:03:17 read ok" index="6067" name="Target Reached Window [user units]" nodeId="50" kickComment="Position window for 'target reached' state" actualValue="50" defaultValue="0x1388" subNumber="0" dataType="0007" kickStatus="1" objectType="7" PDOmapping="no" kickUiFormat="type:integer; range:1,9999999"/>
+      <CANopenObject accessType="rw" kickStatusTxt="16:03:17 read ok" index="6068" name="Target Window Time [ms]" nodeId="50" kickComment="Minimum time the actual pos. must be within 'Target Reached Window' in milliseconds" actualValue="10" defaultValue="0x64" subNumber="0" dataType="0006" kickStatus="1" objectType="7" PDOmapping="no" kickUiFormat="type:integer; range:1,1000"/>
+      <CANopenObject accessType="rw" kickStatusTxt="16:03:17 read ok" index="6073" name="Max. Current/Force [0.1% of 6075h motor rated current]" nodeId="50" kickComment="Current/Torque/Force limit, 1000 = 100%" actualValue="1000" defaultValue="0x0" subNumber="0" dataType="0006" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:1,1000"/>
+     </CANopenObjectList>
+    </SetupObjects>
+    <EditModeDoc>
+     <EditMode>2</EditMode>
+    </EditModeDoc>
+   </docs>
+   <slave label="Communication" type="canusb"/>
+  </module>
+  <module label="flatTRACK_Rabbit_PosControl_Settings" description="MovingCap Drive parameter set - Rabbit Pos Control gains, payload, weight compensation" panelVisible="0" type="nodeconfig">
+   <properties>
+    <NodeId>50</NodeId>
+    <ConfigFilePath>MCFLAT_ETH.xdd</ConfigFilePath>
+    <NodeObjects/>
+    <EditMode/>
+   </properties>
+   <docs>
+    <SetupObjects>
+     <CANopenObjectList>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="Controller Mode" subIndex="01" nodeId="50" kickComment="1 - standard, 2 - hedgehog, 3 - float, 4 - clamp" actualValue="1" defaultValue="0" dataType="0006" kickStatus="1" objectType="7" kickUiFormat="type:combo; options:0,classic|1,standard|2,hedgehog|3,float / force free|4,clamp / stiff static pos"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="Additional User/Payload weight [g]" subIndex="04" nodeId="50" kickComment="payload / additional mass [g]. Position control is switched to 'off' when changing payload." actualValue="0" defaultValue="0" dataType="0006" kickStatus="1" objectType="7" PDOmapping="no" kickUiFormat="type:integer; range:0,65000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="k0 Pos Gain" subIndex="06" nodeId="50" kickComment="Higher = faster in target / less stable. Normalized gain [scaling 0.1%, 1000 = 1]" actualValue="3000" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:-2000,10000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="k1 Vel Gain" subIndex="07" nodeId="50" kickComment="Higher = correct overshoot / fix end position low oscillation. Lower = more dynamic approach / fix resonance in end position. Normalized gain [scaling 0.1%, 1000 = 1]" actualValue="400" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:1,1000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="k2 Err Gain" subIndex="08" nodeId="50" kickComment="Higher = higher end pos. stiffness and accuracy / less stable. Normalized gain [scaling 0.1%, 1000 = 1]" actualValue="60" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:1,200"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="Switch-on velocity for end-pos error correction and clamp mode [μm/s]" subIndex="0D" nodeId="50" kickComment="Switch-on limit for end-pos error integrator and clamp mode" actualValue="50000" defaultValue="0" dataType="0007" kickStatus="1" objectType="7" PDOmapping="no" kickUiFormat="type:integer; range:10000,5000000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="Weight Compensation [g] or +1/-1" subIndex="0F" nodeId="50" kickComment="Use positive/negative weight in gram, or +1 = gravity pulls the payload in positive direction, -1 = gravity pulls the payload in negative direction" actualValue="0" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:-20000,20000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="ks0 Pos Gain (Clamp Mode)" subIndex="10" nodeId="50" kickComment="Higher = higher end pos. stiffness. Normalized gain [scaling 0.1%, 1000 = 1]" actualValue="7000" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:100,30000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="ks1 Vel Gain (Clamp Mode)" subIndex="11" nodeId="50" kickComment="Higher = fix end position low oscillation. Lower = fix resonance in end position. Normalized gain [scaling 0.1%, 1000 = 1]" actualValue="700" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:100,10000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:35 read ok" index="3301" name="ks2 Err Gain (Clamp Mode)" subIndex="12" nodeId="50" kickComment="Higher = higher end pos. stiffness. Normalized gain [scaling 0.1%, 1000 = 1]" actualValue="100" defaultValue="1000" dataType="0003" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:100,2000"/>
+      <CANopenSubObject accessType="rw" kickStatusTxt="16:03:36 read ok" index="3304" name="Velocity feedback lowpass frequency [Hz]" subIndex="03" nodeId="50" kickComment="Use low values for extra quiet operation. Use high value to minimize the Following Error during travel." actualValue="500" defaultValue="0" dataType="0007" kickStatus="1" objectType="7" kickUiFormat="type:integer; range:100,1000"/>
+     </CANopenObjectList>
+    </SetupObjects>
+    <EditModeDoc>
+     <EditMode>0</EditMode>
+    </EditModeDoc>
+   </docs>
+   <slave label="Communication" type="canusb"/>
+  </module>
+ </module>
+ <guistate>000000ff00000000fd0000000100000001000003ab00000276fc0100000005fc000001b1000002940000000000fffffffa000000000100000006fb0000007200530063006f007000650020002d00200050006c006f00740020002d0020003000350030002e00360030006600340068002e00300030006800200046006f006c006c006f00770069006e00670020006500720072006f0072002000610063007400750061006c002000760061006c007500650100000000ffffffff0000000000000000fb0000001600530063006f007000650020002d00200050006f00730100000000ffffffff0000000000000000fb0000001e00530063006f007000650020002d00200070006f007300460065007200720100000000ffffffff0000000000000000fb0000001e00530063006f007000650020002d00200050006f0073002d0045007200720000000000ffffffff0000000000000000fb00000018004d004300200045007400680020004400720069007600650000000000ffffffff0000000000000000fb0000002a004d004300200045007400680020004400720069007600650020002d00200053006300720069007000740000000000ffffffff0000000000000000fb0000001000550049002000500061006e0065006c01000001b1000003c90000000000000000fc00000134000003ab0000000000fffffffa000000000100000002fb000000460066006c006100740054005200410043004b005f00470065006e006500720061006c005f004d006f00760065006d0065006e0074005f00530065007400740069006e006700730000000000ffffffff0000000000000000fb000000480066006c006100740054005200410043004b005f005200610062006200690074005f0050006f00730043006f006e00740072006f006c005f00530065007400740069006e006700730000000000ffffffff0000000000000000fc00000134000003ab0000000000fffffffa000000000100000004fb00000028004d004300200045007400680020004400720069007600650020002d0020005300650074007500700000000000ffffffff0000000000000000fb00000038004d004300200045007400680020004400720069007600650020002d0020004f0062006a00650063007400200045006400690074006f00720000000000ffffffff0000000000000000fb0000000a00530063006f007000650000000000ffffffff0000000000000000fb0000001e00530063006f007000650020002d002000540072006900670067006500720000000000ffffffff0000000000000000fb0000001800500072006f006a00650063007400200048006f006d006501000000fe000003ab0000006b00ffffff000000f70000027600000004000000040000000800000008fc00000001000000020000000100000016006d00610069006e0054006f006f006c0042006100720100000000ffffffff0000000000000000</guistate>
+ <projectinfo>created 2022-12-03T20:25:49 fullmo Kickdrive v3.3.1 heg, modified 2026-08-06T16:04:45 fullmo Kickdrive v3.5.0 heg</projectinfo>
+</KickdriveProject>

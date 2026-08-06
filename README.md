@@ -34,8 +34,9 @@ movingcap-code-suite/
 │   ├─ turntrack_a_b_turntable_README.md
 │   ├─ turntrack_6_slot_turntable.py  ← six-slot rotary-table example
 │   ├─ turntrack_6_slot_turntable_README.md
+│   ├─ flattrack_demo.py    ← continuous flatTRACK/shortTRACK motion demo
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
-├─ skills/              "How to write MovingCap CODE" skill
+├─ skills/              MovingCap CODE authoring skill + Kickdrive `.kickpro` config skill
 ├─ instructions/        Coding rules for app-scripts/**/*.py
 ├─ agents/              Engineer & reviewer agent definitions (portable)
 ├─ .github/             Copilot-native mirror of the agents/skills/instructions
@@ -47,6 +48,8 @@ movingcap-code-suite/
 │   ├─ test_turntrack_6_slot_turntable.py  ← six-slot example functional test
 │   ├─ TestPlan.md      Generalized functional test plan
 │   └─ results/         JSON test reports land here
+├─ kickdrive-projects/  Reference examples for Kickdrive .kickpro project format
+│   └─ flattrack_testing_example/  Working setup, service, parameter and motion-test project
 ├─ AGENTS.md            Tool-agnostic agent guide
 └─ requirements.txt     Host-side deps (requests)
 ```
@@ -128,15 +131,28 @@ monitor.stop()
 ## Writing your own drive app
 1. Read [`skills/movingcap-code-python-writer/SKILL.md`](skills/movingcap-code-python-writer/SKILL.md)
    and [`instructions/movingcap-scripts.instructions.md`](instructions/movingcap-scripts.instructions.md).
-2. Copy `app-scripts/turntrack_a_b_turntable.py` or
-   `app-scripts/turntrack_6_slot_turntable.py` as a starting point. Both demonstrate
-   first-run defaults guarded by an application magic value.
+2. Choose an example that matches the application: the two `turntrack_*.py` scripts
+   demonstrate first-run defaults guarded by an application magic value;
+   `app-scripts/flattrack_demo.py` demonstrates continuous flatTRACK/shortTRACK profile
+   positioning and intentionally blocks while waiting for motion or fault clearance.
 3. Use only documented APIs (the `app-scripts/*.pyi` stubs provide editor documentation)
    and no f-strings. Follow the motion and error-handling pattern appropriate to the app:
    bounded `ChkReady`/`ChkError` waits for direct motion commands, or configured drive
    profiles and status outputs for event-driven applications.
 4. Upload quickly with `testing/upload_mc_script.py`, or add a functional test under
    `testing/` modeled on the `test_turntrack_*.py` examples for repeatable validation.
+
+## Configuring the drive (Kickdrive companion skill)
+Beside the MovingCap CODE authoring skill, this suite ships a companion skill,
+[`skills/kickdrive-project-writer/SKILL.md`](skills/kickdrive-project-writer/SKILL.md), for
+ [Kickdrive](https://www.kickdrive.de) `.kickpro` XML projects. Kickdrive is a Windows-only,
+host-side tool for reading and writing a servo drive's CANopen object-dictionary
+parameters — *configuration*, as opposed to the on-drive MicroPython *application* that
+MovingCap CODE runs. Use it to build user tools for managing presets of relevant CANopen
+object parameters. The working
+[`flattrack_testing_example.kickpro`](kickdrive-projects/flattrack_testing_example/flattrack_testing_example.kickpro)
+project demonstrates setup, service, parameter configuration, scope, and an embedded
+MovingCap CODE motion demo.
 
 ## Communication interfaces (reference)
 | Interface | Port | Use |
