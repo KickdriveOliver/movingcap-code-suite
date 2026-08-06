@@ -13,27 +13,21 @@ parameters defined in the script.
 
 ## Quick start
 
-From the repository root:
+1. Open the drive's **MovingCap CODE** page in a web browser.
+2. Select `turntrack_a_b_turntable.py`, upload it, and start the application.
+3. Wait until startup and referencing are complete.
+4. Open **Setup > IO In** (for the default address:
+   [`http://192.168.2.150/io_in.html`](http://192.168.2.150/io_in.html)).
+5. Use the **IN Simulator** to set IN1 high, then low again. Each new rising edge
+   alternates the target between B and A.
 
-```bash
-python testing/upload_mc_script.py app-scripts/turntrack_a_b_turntable.py --stop-first
-```
+The application can also be controlled with a physical signal connected to IN1.
 
-After the startup delay, pulse physical IN1 or simulate it from host-side Python:
+## Documentation
 
-```python
-from testing.mctk import RefgoClient, input_mask
-
-with RefgoClient("192.168.2.150") as drive:
-    drive.pulse_inputs(input_mask(1))  # move to B
-    drive.pulse_inputs(input_mask(1))  # move back to A
-```
-
-For the complete functional check:
-
-```bash
-python testing/test_turntrack_a_b_turntable.py
-```
+- [MovingCap CODE](https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html)
+- [Uploading and running a test program](https://movingcap.de/webmanuals/mc-eth-sw-manual-en/ein-einfaches-testprogramm.html)
+- [Input functions and IN Simulator](https://movingcap.de/webmanuals/mc-eth-sw-manual-en/inputfct.html)
 
 > **Safety:** Uploading and running this application enables the drive and physically
 > moves the axis. Ensure the turntable can rotate freely between both positions.

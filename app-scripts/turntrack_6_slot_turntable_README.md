@@ -15,28 +15,22 @@ different hardware.
 
 ## Quick start
 
-From the repository root:
+1. Open the drive's **MovingCap CODE** page in a web browser.
+2. Select `turntrack_6_slot_turntable.py`, upload it, and start the application.
+3. Open **Setup > IO In** (for the default address:
+   [`http://192.168.2.150/io_in.html`](http://192.168.2.150/io_in.html)).
+4. Use the **IN Simulator** to set IN1 or IN2 high, then low again to create a new
+   rising edge:
+   - IN2 advances to the next 60° slot.
+   - IN1 moves forward to the next 0° position.
 
-```bash
-python testing/upload_mc_script.py app-scripts/turntrack_6_slot_turntable.py --stop-first
-```
+The application can also be controlled with physical signals connected to IN1 and IN2.
 
-The default drive address is `192.168.2.150`. After startup, pulse physical IN1 or IN2,
-or simulate an input from host-side Python:
+## Documentation
 
-```python
-from testing.mctk import RefgoClient, input_mask
-
-with RefgoClient("192.168.2.150") as drive:
-    drive.pulse_inputs(input_mask(2))  # IN2: advance one slot
-    drive.pulse_inputs(input_mask(1))  # IN1: move forward to 0°
-```
-
-For an automated basic check:
-
-```bash
-python testing/test_turntrack_6_slot_turntable.py
-```
+- [MovingCap CODE](https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html)
+- [Uploading and running a test program](https://movingcap.de/webmanuals/mc-eth-sw-manual-en/ein-einfaches-testprogramm.html)
+- [Input functions and IN Simulator](https://movingcap.de/webmanuals/mc-eth-sw-manual-en/inputfct.html)
 
 > **Safety:** Uploading and running this application enables the drive and physically
 > moves the axis. Ensure the turntable can rotate freely.
