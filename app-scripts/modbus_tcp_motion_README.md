@@ -70,8 +70,8 @@ The application applies a fail-safe shutdown:
 - On TCP disconnect or five seconds without a valid request, it issues controlword
   `0Bh`, which ramps down using the quick-stop deceleration and transitions to
   switch-on-disabled.
-- It waits up to five seconds for switch-on-disabled, then uses controlword `0` as a
-  bounded fallback if necessary.
+- Without a valid request, it allows up to five seconds for switch-on-disabled, then uses
+  controlword `0` as a bounded fallback if necessary.
 - It clears target velocity and operation mode after the stop sequence.
 
 Ensure the rotary axis can move freely before enabling the drive.
@@ -104,9 +104,10 @@ Ensure the rotary axis can move freely before enabling the drive.
 
 ## Verification
 
-The hardware integration test exercises the register map, fragmented and coalesced TCP
-frames, Modbus exceptions, connection interruption, the inactivity watchdog, profile
-position motion, and profile velocity motion:
+### Automated hardware test
+The Python hardware integration test exercises the register map, fragmented and coalesced TCP
+frames, Modbus exceptions, immediate one-request-per-connection reconnects, connection
+interruption, the inactivity watchdog, profile position motion, and profile velocity motion:
 
 ```text
 python testing/test_modbus_tcp_motion.py 192.168.2.150
@@ -115,6 +116,15 @@ python testing/test_modbus_tcp_motion.py 192.168.2.150
 This test enables the drive and physically rotates the approved freely rotating axis.
 It always attempts to clear target velocity, quick-stop/disable the drive, clear the
 operation mode, stop the uploaded script, and verify the final state through REFGO.
+
+### Standalone CLI verification with `modpoll`
+For independent Modbus TCP master verification using the free `modpoll` utility (by ProconX):
+
+```text
+python testing/verify_modbus_tcp_modpoll.py 192.168.2.150
+```
+
+See [`testing/modpoll_verification_README.md`](../testing/modpoll_verification_README.md) for download links, register offset mapping (`modpoll` 1-based vs. PDU 0-based), and manual `modpoll` commands.
 
 ## References
 

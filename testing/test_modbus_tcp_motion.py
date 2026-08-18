@@ -191,6 +191,16 @@ def connect_modbus(client, timeout=5.0):
     return False
 
 
+def one_shot_read(host, address, quantity):
+    """Read once on a fresh TCP connection, then disconnect immediately."""
+    client = ModbusClient(host)
+    try:
+        client.connect()
+        return client.read_registers(address, quantity)
+    finally:
+        client.close()
+
+
 def wait_position(client, target, timeout=5.0):
     deadline = time.monotonic() + timeout
     last_position = None
@@ -489,6 +499,21 @@ def main():
         runner.check("invalid MBAP length closes connection", peer_closed(client.sock))
         client.close()
         runner.check("reconnect after invalid MBAP length", connect_modbus(client))
+
+        runner.section("Immediate reconnect during nonblocking safe disable")
+        client.close()
+        one_shot_results = []
+        one_shot_error = None
+        try:
+            for unused in range(4):
+                one_shot_results.append(one_shot_read(DEVICE_IP, 5000, 1))
+        except (OSError, AssertionError, struct.error) as exc:
+            one_shot_error = exc
+        runner.check("four immediate one-shot TCP requests succeed",
+                     one_shot_error is None and len(one_shot_results) == 4,
+                     repr(one_shot_error))
+        runner.check("persistent client reconnects after one-shot requests",
+                     connect_modbus(client))
 
         runner.section("TCP disconnect safe-disable behavior")
         client.write_single(6001, 3)

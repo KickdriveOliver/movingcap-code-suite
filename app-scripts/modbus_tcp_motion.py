@@ -31,6 +31,9 @@ I16 = 3
 U32 = 4
 I32 = 5
 
+SAFE_DISABLE_IDLE = 0
+SAFE_DISABLE_ACTIVE = 1
+
 # The immutable maps contain (Modbus address, object index, subindex, type).
 # All 32-bit values use high-word-first Modbus register order.
 
@@ -60,27 +63,32 @@ WRITE_MAP = (
 )
 
 
-def safe_disable():
+def start_safe_disable():
     # Quick stop option 2 ramps to standstill, then enters switch-on-disabled.
     mc.WriteObject(0x605A, 0, 2)
     # This can decelerate/stop the axis and remove drive power.
     mc.WriteControl(0x0B)
-    start_time = time.ticks_ms()
-    disabled = False
-    while time.ticks_diff(time.ticks_ms(), start_time) < QUICKSTOP_TIMEOUT_MS:
-        statusword = mc.ReadStatusword()
-        if (statusword & 0x006F) == 0x0040:
-            disabled = True
-            break
-        if statusword & 0x0008:
-            break
-        time.sleep_ms(5)
-    if not disabled:
+    return SAFE_DISABLE_ACTIVE, time.ticks_ms()
+
+
+def step_safe_disable(state, start_time):
+    if state != SAFE_DISABLE_ACTIVE:
+        return state
+    statusword = mc.ReadStatusword()
+    if (statusword & 0x006F) == 0x0040:
+        mc.WriteObject(0x60FF, 0, 0)
+        # Clearing the mode prevents a stale motion mode being reused.
+        mc.WriteObject(0x6060, 0, 0)
+        return SAFE_DISABLE_IDLE
+    if (statusword & 0x0008
+            or time.ticks_diff(time.ticks_ms(), start_time) >= QUICKSTOP_TIMEOUT_MS):
         # Fall back to immediate voltage disable if quick stop cannot complete.
         mc.WriteControl(0)
-    mc.WriteObject(0x60FF, 0, 0)
-    # Clearing the mode prevents a stale motion mode being reused.
-    mc.WriteObject(0x6060, 0, 0)
+        mc.WriteObject(0x60FF, 0, 0)
+        # Clearing the mode prevents a stale motion mode being reused.
+        mc.WriteObject(0x6060, 0, 0)
+        return SAFE_DISABLE_IDLE
+    return state
 
 
 def type_width(type_code):
@@ -239,61 +247,65 @@ def send_all(server, data):
     return True
 
 
-safe_disable()
 server = mcnet.McNet(PORT_SETTINGS)
 buffer = b""
 was_connected = False
+empty_read_seen = False
 last_valid_request = time.ticks_ms()
 watchdog_done = True
+safe_disable_state, safe_disable_start_time = start_safe_disable()
 
 while True:
     connected = server.is_connected()
     if was_connected and not connected:
-        safe_disable()
+        safe_disable_state, safe_disable_start_time = start_safe_disable()
         buffer = b""
+        empty_read_seen = True
         watchdog_done = True
     was_connected = connected
 
     if connected:
         waiting = server.in_waiting()
         if waiting < 0:
-            safe_disable()
+            safe_disable_state, safe_disable_start_time = start_safe_disable()
             server.close()
             time.sleep_ms(20)
             server = mcnet.McNet(PORT_SETTINGS)
             buffer = b""
             was_connected = False
+            empty_read_seen = False
             watchdog_done = True
         else:
             chunk = server.read(256)
             if chunk is not None and len(chunk) == 0:
-                safe_disable()
-                server.close()
-                time.sleep_ms(20)
-                server = mcnet.McNet(PORT_SETTINGS)
+                if not empty_read_seen:
+                    safe_disable_state, safe_disable_start_time = start_safe_disable()
                 buffer = b""
-                was_connected = False
+                empty_read_seen = True
                 watchdog_done = True
             elif chunk:
+                empty_read_seen = False
                 buffer = buffer + chunk
                 if len(buffer) > MAX_BUFFER_LENGTH:
-                    safe_disable()
+                    safe_disable_state, safe_disable_start_time = start_safe_disable()
                     server.close()
                     time.sleep_ms(20)
                     server = mcnet.McNet(PORT_SETTINGS)
                     buffer = b""
                     was_connected = False
+                    empty_read_seen = False
                     watchdog_done = True
 
         while len(buffer) >= 7 and server.is_connected():
             transaction_id, protocol_id, length = ustruct.unpack(">HHH", buffer[0:6])
             if protocol_id != 0 or length < 2 or length > (MAX_ADU_LENGTH - 6):
-                safe_disable()
+                safe_disable_state, safe_disable_start_time = start_safe_disable()
                 server.close()
                 time.sleep_ms(20)
                 server = mcnet.McNet(PORT_SETTINGS)
                 buffer = b""
                 was_connected = False
+                empty_read_seen = False
                 watchdog_done = True
                 break
             adu_length = 6 + length
@@ -308,9 +320,16 @@ while True:
             if valid:
                 last_valid_request = time.ticks_ms()
                 watchdog_done = False
+                # A valid master request resumes control immediately. Any
+                # commands already issued by the quick stop remain effective
+                # until the master changes them via mapped objects.
+                safe_disable_state = SAFE_DISABLE_IDLE
 
         if not watchdog_done and time.ticks_diff(time.ticks_ms(), last_valid_request) >= WATCHDOG_MS:
-            safe_disable()
+            safe_disable_state, safe_disable_start_time = start_safe_disable()
             watchdog_done = True
+
+    safe_disable_state = step_safe_disable(safe_disable_state,
+                                           safe_disable_start_time)
 
     time.sleep_ms(2)
