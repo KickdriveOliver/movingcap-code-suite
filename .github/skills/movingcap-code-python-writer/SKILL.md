@@ -13,7 +13,14 @@ means **MovingCap CODE MicroPython** running on the drive, not generic desktop P
 The authoritative API stubs live next to the drive scripts in [`app-scripts/`](../../../app-scripts/):
 `mcdrive.pyi`, `mcnet.pyi`, `refgo.pyi`, `sys.pyi`, `time.pyi`. Keeping them beside the
 scripts also lets editors (VS Code/Pylance) resolve `import mcdrive` etc. and show inline docs.
-Use ONLY the modules, functions, and patterns documented there (and at the `movingcap.de` URLs below).
+Use ONLY the drive APIs documented there (and at the `movingcap.de` URLs below) plus the
+validated MicroPython subset documented in
+[`movingcap-scripts.instructions.md`](../../instructions/movingcap-scripts.instructions.md).
+
+## MicroPython Capabilities (Firmware v5X.XX.13.00+)
+- **Drive modules:** `mcdrive`, `mcnet`, `refgo`, `time` (`utime`), `sys` (`app-scripts/*.pyi`).
+- **Built-in helpers:** `collections.namedtuple`, `struct`/`ustruct`, `array`, `binascii`/`ubinascii`, `gc`, `micropython`, `%` string formatting, `str.splitlines()`, `str.partition()`/`rpartition()`, `str.count()`, `str.encode()`/`bytes.decode()`, and slice syntax (`[2:6]`, `[:-2]`).
+- **Must avoid (unavailable):** f-strings, floating-point (`float`) and `math`/`cmath` (use integer/fixed-point arithmetic), `bytearray`/`memoryview` (use `array`), `set`/`frozenset`, `@property`, `async`/`await`, `io`, and desktop stdlib modules (`json`, `re`, `socket`, etc.). See [`movingcap-scripts.instructions.md`](../../instructions/movingcap-scripts.instructions.md) for the exact `mpconfigport.h` definition.
 
 ## Key API (from `app-scripts/mcdrive.pyi`)
 - `mc.GoPosAbs(x)` / `mc.GoPosRel(x)` — move to an absolute / relative position. Use
@@ -93,9 +100,10 @@ control, use `mctk.upload_script`, `start_script`, and `stop_script`.
 
 ## Constraints
 - Do not invent APIs or use generic Python libraries unless documented for MovingCap CODE.
-- Do not assume standard-library modules or desktop-Python patterns are available unless the
-  MovingCap documentation explicitly shows them.
-- **Do not use Python f-strings** — they are not available. Concatenate instead: `'pos=' + str(pos)`.
+- Do not assume standard-library modules or desktop-Python patterns are available beyond
+  those listed in [`movingcap-scripts.instructions.md`](../../instructions/movingcap-scripts.instructions.md).
+- **Do not use Python f-strings or `float`** — use `%` modulo formatting (`'pos=%d' % pos`) or
+  string concatenation (`'pos=' + str(pos)`), and integer/fixed-point arithmetic.
 - Do not use commands/examples from the older "python-on-a-chip" / pymite engine; that is a
   different, outdated interpreter with a different library (not `mcdrive`).
 - Do not guess function names, arguments, return values, or side effects.

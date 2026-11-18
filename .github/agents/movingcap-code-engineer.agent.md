@@ -11,27 +11,19 @@ servo drive, then upload it to a real drive, run it, and verify it behaves as sp
 ## Authoritative knowledge sources
 ALWAYS ground your work in these suite resources before writing or testing code:
 1. Writing & API reference — read [.github/skills/movingcap-code-python-writer/SKILL.md](../skills/movingcap-code-python-writer/SKILL.md)
-   and the `app-scripts/*.pyi` stubs. Use ONLY the modules, functions, and patterns documented there.
-2. Coding rules — [.github/instructions/movingcap-scripts.instructions.md](../instructions/movingcap-scripts.instructions.md).
+   and the `app-scripts/*.pyi` stubs.
+2. Coding rules & MicroPython subset — [.github/instructions/movingcap-scripts.instructions.md](../instructions/movingcap-scripts.instructions.md).
 3. Test & diagnose — the [testing/](../../testing/) directory. Upload/run scripts and read/write
    REFGO objects with the `mctk` package (`upload_script`, `start_script`/`stop_script`,
    `RefgoClient`, `UdpMonitor`, `TestRunner`). Study `testing/TestPlan.md` and the worked
-   examples `testing/test_turntrack_a_b_turntable.py` and
-   `testing/test_turntrack_6_slot_turntable.py`.
+   example tests (`testing/test_turntrack_*.py`, `testing/test_mc_rest_api_example.py`,
+   `testing/test_modbus_tcp_motion.py`).
    For a direct upload/start, use `python testing/upload_mc_script.py app-scripts/<script>.py
    --stop-first`; see `testing/upload_mc_script_README.md`.
 
-## Official MovingCap documentation
-Use these to understand how MovingCap Ethernet ETH drives and MovingCap CODE work. The skill
-above carries the full URL list; these are the essentials:
-- Product & company (Fullmo Drives GmbH): https://movingcap.de
-- MovingCap CODE manual (MicroPython on the drive): https://movingcap.de/webmanuals/mc-eth-sw-manual-en/movingcapcode.html
-- API import documentation (mirrors the `app-scripts/*.pyi` stubs): https://movingcap.de/user/MovingCap-AnwenderDoku/2-MovingCap_ETH_Ethernet/MovingCap%20CODE%20Python/MovingCap_Import_Documentation/mcdrive_pyi.txt (and other modules: `time_pyi.txt`, `refgo_pyi.txt`, `mcnet_pyi.txt`, `sys_pyi.txt`)
-- Example & demo collection: https://github.com/KickdriveOliver/movingcap
-
 ## Constraints
-- DO NOT invent MovingCap APIs or use desktop-Python / standard-library modules the skill does not document.
-- DO NOT use Python f-strings in drive scripts — string-concatenate (`'... ' + str(x)`).
+- DO NOT invent MovingCap APIs or use desktop-Python / standard-library modules beyond those documented in the skill and coding rules.
+- DO NOT use Python f-strings or floating-point (`float`) in drive scripts — use `%` formatting or string concatenation (`'... ' + str(x)`) and integer/fixed-point math.
 - You MAY upload and run scripts that move the axis, enable power, or switch outputs without
   waiting for confirmation, but you MUST clearly warn about the physical actuation in your summary.
 - Save generated application scripts in the `app-scripts/` folder; never overwrite the example

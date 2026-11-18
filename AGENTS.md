@@ -1,47 +1,37 @@
 # AGENTS.md — MovingCap CODE Suite
 
-Portable, tool-agnostic guidance for AI coding agents (GitHub Copilot, Claude Code, and
-others) working in this suite. GitHub Copilot also reads the mirrored files under
-[`.github/`](.github/).
+Workspace instructions for AI coding agents (GitHub Copilot, Claude Code, and others).
+See [`README.md`](README.md) for the full file tree, quick-start commands, and architecture overview.
 
-## What this suite is
-A self-contained workspace for **developing and testing MovingCap CODE (MicroPython)**
-applications on MovingCap Ethernet ETH servo drives, including turnTRACK/MC349 and
-flatTRACK/MCFLAT, with host-side Python tooling to upload, run, and diagnose them.
-
-## Map of the suite
-| Path | Purpose |
-|------|---------|
-| `app-scripts/` | Drive-side MicroPython applications, including two turnTRACK examples and the flatTRACK/shortTRACK `flattrack_demo.py`. |
-| `app-scripts/*.pyi` | Authoritative MovingCap CODE API stubs (`mcdrive/mcnet/refgo/sys/time.pyi`), kept beside the drive scripts so editors (VS Code/Pylance) resolve imports and show inline docs. |
-| `skills/movingcap-code-python-writer/SKILL.md` | How to write MovingCap CODE; key APIs and rules. |
-| `skills/kickdrive-project-writer/SKILL.md` | Companion skill for fullmo Kickdrive `.kickpro` drive configuration and CANopen parameter management (host-side config, not on-drive code). |
-| `kickdrive-projects/flattrack_testing_example/` | Working Kickdrive setup, service, parameter-configuration, scope, and motion-test blueprint. |
-| `instructions/movingcap-scripts.instructions.md` | Hard coding rules for `app-scripts/**/*.py`. |
-| `agents/` | Engineer and reviewer agent definitions (portable). |
-| `testing/mctk/` | Host-side test kit: upload/run, REFGO `OR`/`OW`, UDP monitor, test runner. |
-| `testing/upload_mc_script.py` | CLI to stop, upload, and optionally start a drive script from any working directory. |
-| `testing/upload_mc_script_README.md` | Upload CLI usage and options. |
-| `testing/test_turntrack_a_b_turntable.py` | Functional test for the A/B example app. |
-| `testing/test_turntrack_6_slot_turntable.py` | Basic functional test for the six-slot example app. |
-| `testing/TestPlan.md` | Generalized functional test plan. |
+## Key resources
+- **Drive-script authoring & API reference:**
+  [`.github/skills/movingcap-code-python-writer/SKILL.md`](.github/skills/movingcap-code-python-writer/SKILL.md)
+  and the API stubs in [`app-scripts/`](app-scripts/) (`*.pyi`, kept beside the drive scripts for editor support).
+- **Coding rules & MicroPython subset (`v5X.XX.13.00+`):**
+  [`.github/instructions/movingcap-scripts.instructions.md`](.github/instructions/movingcap-scripts.instructions.md).
+- **Host tooling & tests:** [`testing/mctk/`](testing/mctk/) (`uploader.py`, `refgo.py`, `udp.py`, `runner.py`),
+  [`testing/upload_mc_script.py`](testing/upload_mc_script.py) (see [`testing/upload_mc_script_README.md`](testing/upload_mc_script_README.md)),
+  [`testing/TestPlan.md`](testing/TestPlan.md), and `testing/test_*.py`.
+- **Kickdrive project authoring:** [`.github/skills/kickdrive-project-writer/SKILL.md`](.github/skills/kickdrive-project-writer/SKILL.md)
+  and the [`flattrack_testing_example.kickpro`](kickdrive-projects/flattrack_testing_example/flattrack_testing_example.kickpro) blueprint.
 
 ## Two kinds of Python — do not mix the rules
-1. **Drive-side MicroPython** (`app-scripts/`): documented MovingCap APIs only, **no f-strings**,
-   and prefer `time.sleep_ms`. Use bounded status/error waits for applications that should
-   recover autonomously. A diagnostic motion demo may intentionally block so an operator
-   investigates a failed move; document that behavior explicitly.
-2. **Host-side CPython** (`testing/`): ordinary desktop Python 3; f-strings and the standard
-   library are fine. Only dependency is `requests` (see `requirements.txt`).
+1. **Drive-side MicroPython** (`app-scripts/`): runs on the drive via MovingCap CODE (firmware `v5X.XX.13.00+`).
+   Use documented drive APIs (`mcdrive`, `mcnet`, `refgo`, `time`, `sys`) and the validated MicroPython subset
+   (`collections.namedtuple`, `struct`/`ustruct`, `array`, `binascii`/`ubinascii`, `gc`, `%` formatting,
+   `str.splitlines`/`partition`, slice syntax). **No f-strings, no `float`/`math`, no `bytearray`/`set`** — use
+   integer/fixed-point math and `time.sleep_ms`. Follow [`.github/instructions/movingcap-scripts.instructions.md`](.github/instructions/movingcap-scripts.instructions.md).
+2. **Host-side CPython** (`testing/`): ordinary desktop Python 3 on the PC (`requests` is the only external dependency).
+   Normal Python conventions (f-strings, stdlib) apply here.
 
 ## Typical workflow
 1. Read the skill + instructions. Restate the spec as concrete, testable behaviors.
 2. Write/adapt the drive script in `app-scripts/` using documented APIs only.
-3. Upload with `python testing/upload_mc_script.py app-scripts/<script>.py --stop-first`,
-   or use `mctk` directly for test automation.
-4. Verify against UDP/REFGO output and the TestPlan.
-5. Iterate until the spec is met. Flag any physical actuation (motion/power/outputs).
+3. Upload with `python testing/upload_mc_script.py app-scripts/<script>.py --stop-first` (default IP `192.168.2.150`),
+   or use `mctk` directly from inside `testing/` for test automation.
+4. Verify against UDP/REFGO output and `testing/TestPlan.md`.
+5. Iterate until the spec is met. Clearly flag any physical actuation (motion/power/outputs).
 
 ## Safety
-The drive can physically move. Confirm the axis can move freely before running, and never
-guess units, limits, speeds, or directions — confirm from the spec, docs, or observed output.
+Scripts may physically move the axis, power the drive, or switch outputs. Confirm the axis can move freely
+before running, and never guess units, limits, speeds, or directions — confirm from the spec, docs, or observed output.

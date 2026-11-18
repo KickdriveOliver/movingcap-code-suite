@@ -34,16 +34,17 @@ movingcap-code-suite/
 │   ├─ turntrack_a_b_turntable_README.md
 │   ├─ turntrack_6_slot_turntable.py  ← six-slot rotary-table example
 │   ├─ turntrack_6_slot_turntable_README.md
-│   ├─ flattrack_demo.py    ← continuous flatTRACK/shortTRACK motion demo
-│   ├─ mc_rest_api_example.py
+│   ├─ flattrack_demo.py              ← continuous flatTRACK/shortTRACK motion demo
+│   ├─ mc_rest_api_example.py         ← HTTP/JSON REST API server example
 │   ├─ mc_rest_api_example_README.md
-│   ├─ modbus_tcp_motion.py
+│   ├─ mc_rest_api_simple_GET_example.py ← minimal HTTP GET object-read example
+│   ├─ modbus_tcp_motion.py           ← Modbus TCP motion/object gateway example
 │   ├─ modbus_tcp_motion_README.md
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
-├─ skills/              MovingCap CODE authoring skill + Kickdrive `.kickpro` config skill
-├─ instructions/        Coding rules for app-scripts/**/*.py
-├─ agents/              Engineer & reviewer agent definitions (portable)
-├─ .github/             Copilot-native mirror of the agents/skills/instructions
+├─ .github/             Agent skills, coding instructions, and custom agents
+│   ├─ skills/          MovingCap CODE authoring skill + Kickdrive `.kickpro` config skill
+│   ├─ instructions/    Coding rules & MicroPython subset for app-scripts/**/*.py
+│   └─ agents/          Engineer & reviewer custom agent definitions
 ├─ testing/
 │   ├─ mctk/            Host-side MovingCap Test Kit (CPython 3)
 │   ├─ upload_mc_script.py  One-command upload/start utility
@@ -58,7 +59,7 @@ movingcap-code-suite/
 │   └─ results/         JSON test reports land here
 ├─ kickdrive-projects/  Reference examples for Kickdrive .kickpro project format
 │   └─ flattrack_testing_example/  Working setup, service, parameter and motion-test project
-├─ AGENTS.md            Tool-agnostic agent guide
+├─ AGENTS.md            Workspace guide for AI coding agents
 └─ requirements.txt     Host-side deps (requests)
 ```
 
@@ -67,8 +68,8 @@ movingcap-code-suite/
 | | Drive-side | Host-side |
 |---|---|---|
 | Where | `app-scripts/` | `testing/` (`mctk`) |
-| Runtime | MovingCap CODE MicroPython, on the servo drive | Desktop CPython 3, on your PC |
-| Rules | Documented APIs only, **no f-strings**, `time.sleep_ms` | Normal Python; only needs `requests` |
+| Runtime | MovingCap CODE MicroPython, on the servo drive (firmware `v5X.XX.13.00+`) | Desktop CPython 3, on your PC |
+| Rules | `mcdrive`/`mcnet`/`refgo`/`time`/`sys` + compact MicroPython subset (`collections.namedtuple`, `struct`, `array`, `binascii`, `gc`, slices, `splitlines`/`partition`, `%` format). **No f-strings, no `float`/`math`**, use `time.sleep_ms`. See [`movingcap-scripts.instructions.md`](.github/instructions/movingcap-scripts.instructions.md) | Normal Python; only needs `requests` |
 
 Do not apply servo drive-side constraints to the host tooling, or host conventions to servo drive scripts.
 
@@ -137,22 +138,22 @@ monitor.stop()
 - **`runner`** — `TestRunner` with `check`/`section`/`summary` and JSON report output.
 
 ## Writing your own drive app
-1. Read [`skills/movingcap-code-python-writer/SKILL.md`](skills/movingcap-code-python-writer/SKILL.md)
-   and [`instructions/movingcap-scripts.instructions.md`](instructions/movingcap-scripts.instructions.md).
-2. Choose an example that matches the application: the two `turntrack_*.py` scripts
-   demonstrate first-run defaults guarded by an application magic value;
-   `app-scripts/flattrack_demo.py` demonstrates continuous flatTRACK/shortTRACK profile
-   positioning and intentionally blocks while waiting for motion or fault clearance.
+1. Read [`.github/skills/movingcap-code-python-writer/SKILL.md`](.github/skills/movingcap-code-python-writer/SKILL.md)
+   and [`.github/instructions/movingcap-scripts.instructions.md`](.github/instructions/movingcap-scripts.instructions.md).
+2. Choose an example that matches the application:
+   - `turntrack_*.py` demonstrate first-run defaults guarded by an application magic value.
+   - `flattrack_demo.py` demonstrates continuous flatTRACK/shortTRACK profile positioning and intentionally blocks while waiting for motion or fault clearance.
+   - `mc_rest_api_example.py`, `mc_rest_api_simple_GET_example.py`, and `modbus_tcp_motion.py` demonstrate custom TCP/HTTP/Modbus protocol servers using `mcnet`, `collections.namedtuple`, `struct`, `%` formatting, and string partitioning/slicing.
 3. Use only documented APIs (the `app-scripts/*.pyi` stubs provide editor documentation)
-   and no f-strings. Follow the motion and error-handling pattern appropriate to the app:
-   bounded `ChkReady`/`ChkError` waits for direct motion commands, or configured drive
-   profiles and status outputs for event-driven applications.
+   and the validated MicroPython subset (no f-strings, no `float`). Follow the motion and
+   error-handling pattern appropriate to the app: bounded `ChkReady`/`ChkError` waits for
+   direct motion commands, or configured drive profiles and status outputs for event-driven applications.
 4. Upload quickly with `testing/upload_mc_script.py`, or add a functional test under
-   `testing/` modeled on the `test_turntrack_*.py` examples for repeatable validation.
+   `testing/` modeled on the `test_*.py` examples for repeatable validation.
 
 ## Configuring the drive (Kickdrive companion skill)
 Beside the MovingCap CODE authoring skill, this suite ships a companion skill,
-[`skills/kickdrive-project-writer/SKILL.md`](skills/kickdrive-project-writer/SKILL.md), for
+[`.github/skills/kickdrive-project-writer/SKILL.md`](.github/skills/kickdrive-project-writer/SKILL.md), for
  [Kickdrive](https://www.kickdrive.de) `.kickpro` XML projects. Kickdrive is a Windows-only,
 host-side tool for reading and writing a servo drive's CANopen object-dictionary
 parameters — *configuration*, as opposed to the on-drive MicroPython *application* that
@@ -178,8 +179,9 @@ MovingCap CODE motion demo.
 - **Example & demo collection:** [`KickdriveOliver/movingcap`](https://github.com/KickdriveOliver/movingcap). 
   Dedicated repository for the example files (demos, applications, scripts) and docs-as-code source files (.md).
 
-The drive-script authoring rules and the full reference URL list also live in
-[`skills/movingcap-code-python-writer/SKILL.md`](skills/movingcap-code-python-writer/SKILL.md),
+The drive-script authoring rules and the full reference URL list live in
+[`.github/skills/movingcap-code-python-writer/SKILL.md`](.github/skills/movingcap-code-python-writer/SKILL.md)
+and [`.github/instructions/movingcap-scripts.instructions.md`](.github/instructions/movingcap-scripts.instructions.md),
 so AI agents working in this repo pick them up automatically.
 
 ## Relationship to the `movingcap` examples repo
