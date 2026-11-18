@@ -22,8 +22,11 @@ if THIS_DIR not in sys.path:
     sys.path.insert(0, THIS_DIR)
 
 from upload_mc_script import upload_and_run
+from mctk import RefgoClient
 
 DEFAULT_DEVICE_IP = "192.168.2.150"
+NETWORK_TIMEOUT = 30.0
+MODPOLL_TIMEOUT = 10
 SCRIPT_PATH = os.path.normpath(os.path.join(THIS_DIR, "..", "app-scripts", "modbus_tcp_motion.py"))
 
 
@@ -53,13 +56,32 @@ def find_modpoll_executable():
 
 
 def run_my_command(cmd_args):
-    print(f"Running: {' '.join(cmd_args)}")
-    result = subprocess.run(cmd_args, capture_output=True, text=True)
-    if result.stdout:
-        print(result.stdout.strip())
-    if result.stderr:
-        print(result.stderr.strip(), file=sys.stderr)
-    return (result.returncode == 0)
+    """Run an idempotent CLI read/write with a 30-second total network budget."""
+    deadline = time.monotonic() + NETWORK_TIMEOUT
+    for attempt in range(3):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return False
+        print(f"Running (attempt {attempt + 1}/3): {' '.join(cmd_args)}")
+        try:
+            result = subprocess.run(cmd_args, capture_output=True, text=True,
+                                    timeout=remaining)
+        except subprocess.TimeoutExpired:
+            print("[ERROR] Command exceeded the network timeout.", file=sys.stderr)
+            return False
+        if result.stdout:
+            print(result.stdout.strip())
+        if result.stderr:
+            print(result.stderr.strip(), file=sys.stderr)
+        if result.returncode == 0:
+            return True
+        message = (result.stdout + result.stderr).lower()
+        if not any(reason in message for reason in (
+                "can't reach", "connection", "timed out", "timeout")):
+            return False
+        if attempt < 2:
+            time.sleep(min(0.25, max(0, deadline - time.monotonic())))
+    return False
 
 
 def main(argv=None):
@@ -82,7 +104,8 @@ def main(argv=None):
 
     # 1. Upload and start the MicroPython drive script
     print(f"\n[1/6] Uploading and starting modbus_tcp_motion.py on drive ({device_ip})...")
-    if not upload_and_run(SCRIPT_PATH, device_ip=device_ip, stop_first=True):
+    if not upload_and_run(SCRIPT_PATH, device_ip=device_ip, stop_first=True,
+                          timeout=NETWORK_TIMEOUT):
         print(f"[ERROR] Failed to upload/start modbus_tcp_motion.py on drive {device_ip}.", file=sys.stderr)
         return 1
 
@@ -103,31 +126,38 @@ def main(argv=None):
     print(f"[INFO] Found modpoll at: {modpoll_path}")
     print("[2/6] Waiting 2 seconds for server startup...")
     time.sleep(2.0)
+    base_command = [modpoll_path, "-m", "tcp", "-p", "502", "-o", str(MODPOLL_TIMEOUT), "-1"]
 
     # 3. Read Status & Feedback Block (PDU 5000-5005 -> modpoll 5001, count 6)
     print("\n[3/6] Reading Status & Feedback Block (PDU 5000-5005, modpoll reference 5001, count 6)...")
-    cmd_read = [modpoll_path, "-m", "tcp", "-p", "502", "-1", "-r", "5001", "-c", "6", device_ip]
+    cmd_read = base_command + ["-r", "5001", "-c", "6", device_ip]
     if not run_my_command(cmd_read):
         print("[ERROR] Failed to read feedback registers.", file=sys.stderr)
         return 1
 
     # 4. Write Operation Mode = 1 (Profile Position Mode, PDU 6001 -> modpoll reference 6002)
     print("\n[4/6] Writing Operation Mode = 1 (Profile Position) to PDU 6001 (modpoll reference 6002)...")
-    cmd_mode = [modpoll_path, "-m", "tcp", "-p", "502", "-1", "-r", "6002", device_ip, "1"]
+    cmd_mode = base_command + ["-r", "6002", device_ip, "1"]
     if not run_my_command(cmd_mode):
         print("[ERROR] Failed to write operation mode.", file=sys.stderr)
         return 1
 
     # 5. Write Target Position = 1000 (32-bit int, PDU 6002-6003 -> modpoll reference 6003)
     print("\n[5/6] Writing Target Position = 1000 to PDU 6002-6003 (modpoll reference 6003, 32-bit int)...")
-    cmd_target = [modpoll_path, "-m", "tcp", "-p", "502", "-1", "-t", "4:int", "-r", "6003", device_ip, "1000"]
+    cmd_target = base_command + ["-t", "4:int", "-i", "-r", "6003", device_ip, "1000"]
     if not run_my_command(cmd_target):
         print("[ERROR] Failed to write target position.", file=sys.stderr)
         return 1
+    with RefgoClient(device_ip, timeout=NETWORK_TIMEOUT) as drive:
+        target = drive.read_object(0x607A, 0)
+    if target != 1000:
+        print(f"[ERROR] Target-position readback is {target}, expected 1000.", file=sys.stderr)
+        return 1
+    print("[PASS] REFGO independently confirms target position 1000.")
 
     # 6. Write Controlword = 6 (Shutdown, PDU 6000 -> modpoll reference 6001)
     print("\n[6/6] Writing Controlword = 6 (Shutdown) to PDU 6000 (modpoll reference 6001)...")
-    cmd_control = [modpoll_path, "-m", "tcp", "-p", "502", "-1", "-r", "6001", device_ip, "6"]
+    cmd_control = base_command + ["-r", "6001", device_ip, "6"]
     if not run_my_command(cmd_control):
         print("[ERROR] Failed to write controlword.", file=sys.stderr)
         return 1

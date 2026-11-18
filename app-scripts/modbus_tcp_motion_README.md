@@ -124,7 +124,7 @@ For independent Modbus TCP master verification using the free `modpoll` utility 
 python testing/verify_modbus_tcp_modpoll.py 192.168.2.150
 ```
 
-See [`testing/modpoll_verification_README.md`](../testing/modpoll_verification_README.md) for download links, register offset mapping (`modpoll` 1-based vs. PDU 0-based), and manual `modpoll` commands.
+See [`testing/verify_modbus_tcp_modpoll_README.md`](../testing/verify_modbus_tcp_modpoll_README.md) for download links, register offset mapping (`modpoll` 1-based vs. PDU 0-based), and manual `modpoll` commands.
 
 ## References
 

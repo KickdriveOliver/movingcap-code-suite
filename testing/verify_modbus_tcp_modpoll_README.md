@@ -46,10 +46,8 @@ python testing/verify_modbus_tcp_modpoll.py 192.168.2.150
 5. **Writes 32-bit Target Position**: Writes target position `1000` (`607Ah`) as a 32-bit integer across two registers.
 6. **Writes Controlword**: Sends CiA-402 Shutdown command (`0x0006` -> `6040h`).
 
-Each `modpoll -1` invocation creates a separate one-request TCP connection. The verifier
-does not delay successful calls. It retries an idempotent command up to three times with a
-short backoff if `modpoll` reports a transient connection failure while Windows and the
-utility recycle consecutive sockets.
+The verifier uses one-shot `modpoll` commands and independently reads the 32-bit
+target position through REFGO before proceeding.
 
 ---
 
@@ -77,22 +75,22 @@ If you want to run `modpoll` commands manually:
 
 ### Read Status & Feedback (Registers 5000–5005)
 ```cmd
-modpoll -m tcp -p 502 -1 -r 5001 -c 6 192.168.2.150
+modpoll -m tcp -p 502 -o 10 -1 -r 5001 -c 6 192.168.2.150
 ```
 
 ### Write Operation Mode = 1 (Profile Position)
 ```cmd
-modpoll -m tcp -p 502 -1 -r 6002 192.168.2.150 1
+modpoll -m tcp -p 502 -o 10 -1 -r 6002 192.168.2.150 1
 ```
 
 ### Write 32-bit Target Position = 1000
 ```cmd
-modpoll -m tcp -p 502 -1 -t 4:int -r 6003 192.168.2.150 1000
+modpoll -m tcp -p 502 -o 10 -1 -t 4:int -i -r 6003 192.168.2.150 1000
 ```
 
 ### Write Controlword = 6 (Shutdown)
 ```cmd
-modpoll -m tcp -p 502 -1 -r 6001 192.168.2.150 6
+modpoll -m tcp -p 502 -o 10 -1 -r 6001 192.168.2.150 6
 ```
 
 ### Continuous Polling Loop (Watchdog Keep-Alive)

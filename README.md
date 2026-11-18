@@ -35,6 +35,10 @@ movingcap-code-suite/
 │   ├─ turntrack_6_slot_turntable.py  ← six-slot rotary-table example
 │   ├─ turntrack_6_slot_turntable_README.md
 │   ├─ flattrack_demo.py    ← continuous flatTRACK/shortTRACK motion demo
+│   ├─ mc_rest_api_example.py
+│   ├─ mc_rest_api_example_README.md
+│   ├─ modbus_tcp_motion.py
+│   ├─ modbus_tcp_motion_README.md
 │   └─ *.pyi              API stubs (mcdrive/mcnet/refgo/sys/time) for editor support
 ├─ skills/              MovingCap CODE authoring skill + Kickdrive `.kickpro` config skill
 ├─ instructions/        Coding rules for app-scripts/**/*.py
@@ -46,6 +50,10 @@ movingcap-code-suite/
 │   ├─ upload_mc_script_README.md  CLI reference
 │   ├─ test_turntrack_a_b_turntable.py  ← A/B example functional test
 │   ├─ test_turntrack_6_slot_turntable.py  ← six-slot example functional test
+│   ├─ test_mc_rest_api_example.py
+│   ├─ test_modbus_tcp_motion.py
+│   ├─ verify_modbus_tcp_modpoll.py
+│   ├─ verify_modbus_tcp_modpoll_README.md
 │   ├─ TestPlan.md      Generalized functional test plan
 │   └─ results/         JSON test reports land here
 ├─ kickdrive-projects/  Reference examples for Kickdrive .kickpro project format

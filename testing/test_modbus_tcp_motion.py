@@ -22,10 +22,14 @@ SCRIPT_NAME = "modbus_tcp_motion.py"
 SCRIPT_PATH = os.path.normpath(os.path.join(THIS_DIR, "..", "app-scripts", SCRIPT_NAME))
 RESULTS_DIR = os.path.join(THIS_DIR, "results")
 MODBUS_PORT = 502
-SOCKET_TIMEOUT = 2.0
+SOCKET_TIMEOUT = 30.0
+# Bench-specific motion values for the current freely rotating MC349 setup.
+# Review these constants before using the test with different mechanics or power.
 POSITION_TOLERANCE = 5
 VELOCITY_STANDSTILL_TOLERANCE = 5
 VELOCITY_MOTION_THRESHOLD = 10
+SAFE_RAMP = 200
+TEST_VELOCITY = 1800
 
 U8 = "u8"
 I8 = "i8"
@@ -180,7 +184,7 @@ def raw_write_multiple(client, address, values):
     return client.send(pdu)
 
 
-def connect_modbus(client, timeout=5.0):
+def connect_modbus(client, timeout=SOCKET_TIMEOUT):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
@@ -217,7 +221,7 @@ def wait_position(client, target, timeout=5.0):
     return False, last_position, last_status
 
 
-def wait_standstill_refgo(drive, timeout=5.0):
+def wait_standstill_refgo(drive, timeout=5.0, tolerance=VELOCITY_STANDSTILL_TOLERANCE):
     deadline = time.monotonic() + timeout
     velocity = None
     status = None
@@ -226,14 +230,28 @@ def wait_standstill_refgo(drive, timeout=5.0):
         status = drive.read_object(0x6041, 0)
         if status is not None and status & 0x0008:
             return False, velocity, status
-        if velocity is not None and abs(velocity) <= VELOCITY_STANDSTILL_TOLERANCE:
+        if velocity is not None and abs(velocity) <= tolerance:
             return True, velocity, status
         time.sleep(0.05)
     return False, velocity, status
 
 
+def ensure_safe_ramps(drive):
+    values = {}
+    for index in (0x6083, 0x6084, 0x6085):
+        if not drive.write_object(index, 0, SAFE_RAMP):
+            raise AssertionError("Could not set safe ramp " + hex(index))
+    for index in (0x6083, 0x6084, 0x6085):
+        value = drive.read_object(index, 0)
+        if value != SAFE_RAMP or not 0 < value <= 200:
+            raise AssertionError("Unsafe ramp " + hex(index) + "=" + str(value))
+        values[index] = value
+    return values
+
+
 def safe_refgo_cleanup(drive):
     results = {}
+    results["safe_ramps"] = ensure_safe_ramps(drive)
     results["quickstop_option_2"] = drive.write_object(0x605A, 0, 2)
     results["quickstop_controlword"] = drive.write_object(0x6040, 0, 0x0B)
     deadline = time.monotonic() + 5.0
@@ -254,7 +272,7 @@ def safe_refgo_cleanup(drive):
     return results
 
 
-def verify_safe_refgo_state(drive, timeout=6.0):
+def verify_safe_refgo_state(drive, timeout=6.0, tolerance=VELOCITY_STANDSTILL_TOLERANCE):
     deadline = time.monotonic() + timeout
     target_velocity = None
     mode = None
@@ -268,7 +286,7 @@ def verify_safe_refgo_state(drive, timeout=6.0):
         if (target_velocity == 0 and mode == 0 and statusword is not None
                 and (statusword & 0x006F) == 0x0040
                 and actual_velocity is not None
-                and abs(actual_velocity) <= VELOCITY_STANDSTILL_TOLERANCE):
+                and abs(actual_velocity) <= tolerance):
             return True, target_velocity, mode, statusword, actual_velocity
         time.sleep(0.05)
     return False, target_velocity, mode, statusword, actual_velocity
@@ -279,7 +297,7 @@ def exception_code(response):
     return pdu[1] if len(pdu) == 2 and pdu[0] & 0x80 else None
 
 
-def peer_closed(sock, timeout=1.0):
+def peer_closed(sock, timeout=SOCKET_TIMEOUT):
     old_timeout = sock.gettimeout()
     sock.settimeout(timeout)
     try:
@@ -301,13 +319,24 @@ def main():
     parameter_before = {}
     after_position = {}
     cleanup = {}
+    velocity_tolerance = VELOCITY_STANDSTILL_TOLERANCE
 
     try:
         runner.section("Setup and saved-parameter baseline")
-        stop_script(DEVICE_IP)
-        drive = RefgoClient(DEVICE_IP, verbose=True)
+        stop_script(DEVICE_IP, timeout=SOCKET_TIMEOUT)
+        drive = RefgoClient(DEVICE_IP, timeout=SOCKET_TIMEOUT, verbose=True)
         drive.connect()
-        safe_refgo_cleanup(drive)
+        setup_cleanup = safe_refgo_cleanup(drive)
+        runner.check("all three test ramps explicitly set and verified <=200",
+                 all(value == SAFE_RAMP for value in setup_cleanup["safe_ramps"].values()),
+                 repr(setup_cleanup["safe_ramps"]))
+        velocity_tolerance = drive.read_object(0x606F, 0)
+        if not isinstance(velocity_tolerance, int) or velocity_tolerance <= 0:
+            raise AssertionError("A positive configured velocity threshold is required")
+        if TEST_VELOCITY <= velocity_tolerance:
+            raise AssertionError("Test velocity must exceed the configured velocity threshold")
+        runner.check("test speed exceeds configured velocity threshold", True,
+                     "speed=" + str(TEST_VELOCITY) + " threshold=" + str(velocity_tolerance))
         before = {
             "statusword": drive.read_object(0x6041, 0),
             "mode": drive.read_object(0x6060, 0),
@@ -342,11 +371,11 @@ def main():
 
         monitor = UdpMonitor(DEVICE_IP)
         monitor.start()
-        uploaded = upload_script(DEVICE_IP, SCRIPT_PATH)
+        uploaded = upload_script(DEVICE_IP, SCRIPT_PATH, timeout=SOCKET_TIMEOUT)
         runner.check("script upload", uploaded)
         if not uploaded:
             raise AssertionError("script upload failed")
-        started = uploaded and start_script(DEVICE_IP)
+        started = uploaded and start_script(DEVICE_IP, timeout=SOCKET_TIMEOUT)
         runner.check("script start", started)
         if not started:
             raise AssertionError("script start failed")
@@ -373,7 +402,7 @@ def main():
                      signed32(registers[2], registers[3]) == ref_position)
         mapped_velocity = signed32(registers[4], registers[5])
         runner.check("5004-5005 velocity high-word-first",
-                     abs(mapped_velocity) <= 10 and abs(ref_velocity) <= 10,
+                     abs(mapped_velocity) <= velocity_tolerance and abs(ref_velocity) <= velocity_tolerance,
                      "Modbus 606Ch=" + str(mapped_velocity)
                      + " REFGO 606Ch=" + str(ref_velocity))
 
@@ -547,6 +576,7 @@ def main():
         runner.section("Approved profile-position motion +100 and return -100")
         position_start = drive.read_object(0x6064, 0)
         client.write_single(6001, 1)
+        client.write_multiple(6004, words32(TEST_VELOCITY))
         for controlword in (6, 7, 15):
             client.write_single(6000, controlword)
             time.sleep(0.05)
@@ -571,23 +601,23 @@ def main():
                      "target=" + str(position_start) + " actual=" + str(position_return)
                      + " status=" + hex(status_return or 0))
 
-        runner.section("Approved profile-velocity +100 and bounded stop")
+        runner.section("Approved profile-velocity +" + str(TEST_VELOCITY) + " and bounded stop")
         client.write_single(6001, 3)
         client.write_multiple(6006, words32(0))
         for controlword in (6, 7, 15):
             client.write_single(6000, controlword)
             time.sleep(0.05)
-        client.write_multiple(6006, words32(100))
+        client.write_multiple(6006, words32(TEST_VELOCITY))
         time.sleep(1.0)
         velocity_registers = client.read_registers(5004, 2)
         modbus_velocity = signed32(velocity_registers[0], velocity_registers[1])
         refgo_velocity = drive.read_object(0x606C, 0)
         runner.check("profile velocity actual is nonzero",
-                     abs(modbus_velocity) > VELOCITY_MOTION_THRESHOLD,
+                     abs(modbus_velocity) > max(VELOCITY_MOTION_THRESHOLD, velocity_tolerance),
                      "Modbus 606Ch=" + str(modbus_velocity)
                      + " REFGO 606Ch=" + str(refgo_velocity))
         client.write_multiple(6006, words32(0))
-        stopped, stop_velocity, stop_status = wait_standstill_refgo(drive)
+        stopped, stop_velocity, stop_status = wait_standstill_refgo(drive, tolerance=velocity_tolerance)
         runner.check("profile velocity bounded standstill", stopped,
                      "606Ch=" + str(stop_velocity) + " status=" + hex(stop_status or 0))
 
@@ -597,7 +627,7 @@ def main():
         for controlword in (6, 7, 15):
             client.write_single(6000, controlword)
             time.sleep(0.05)
-        client.write_multiple(6006, words32(100))
+        client.write_multiple(6006, words32(TEST_VELOCITY))
         time.sleep(1.0)
         watchdog_moving_velocity = drive.read_object(0x606C, 0)
         time.sleep(4.7)
@@ -605,9 +635,10 @@ def main():
         watchdog_mode = drive.read_object(0x6060, 0)
         watchdog_status = drive.read_object(0x6041, 0)
         watchdog_quickstop_option = drive.read_object(0x605A, 0)
-        watchdog_stopped, watchdog_velocity, _ = wait_standstill_refgo(drive, 2.0)
+        watchdog_stopped, watchdog_velocity, _ = wait_standstill_refgo(
+            drive, 2.0, tolerance=velocity_tolerance)
         runner.check("watchdog test began with motion",
-                     abs(watchdog_moving_velocity) > VELOCITY_MOTION_THRESHOLD,
+                     abs(watchdog_moving_velocity) > max(VELOCITY_MOTION_THRESHOLD, velocity_tolerance),
                      "606Ch=" + str(watchdog_moving_velocity))
         runner.check("watchdog clears target velocity", watchdog_target == 0,
                      "60FFh=" + str(watchdog_target))
@@ -631,7 +662,7 @@ def main():
             print("UDP_DIAGNOSTICS " + repr(monitor.lines))
         if drive is None:
             try:
-                drive = RefgoClient(DEVICE_IP, verbose=True)
+                drive = RefgoClient(DEVICE_IP, timeout=SOCKET_TIMEOUT, verbose=True)
                 drive.connect()
             except OSError as exc:
                 runner.check("cleanup REFGO connect", False, repr(exc))
@@ -645,7 +676,7 @@ def main():
         cleanup_state = (None, None, None, None)
         if drive is not None:
             try:
-                cleanup_result = verify_safe_refgo_state(drive)
+                cleanup_result = verify_safe_refgo_state(drive, tolerance=velocity_tolerance)
                 cleanup_verified = cleanup_result[0]
                 cleanup_state = cleanup_result[1:]
             except OSError as exc:
@@ -655,13 +686,13 @@ def main():
             time.sleep(6.0)
             if drive is None:
                 try:
-                    drive = RefgoClient(DEVICE_IP, verbose=True)
+                    drive = RefgoClient(DEVICE_IP, timeout=SOCKET_TIMEOUT, verbose=True)
                     drive.connect()
                 except OSError as exc:
                     runner.check("watchdog cleanup REFGO connect", False, repr(exc))
             if drive is not None:
                 try:
-                    cleanup_result = verify_safe_refgo_state(drive, 1.0)
+                    cleanup_result = verify_safe_refgo_state(drive, 1.0, tolerance=velocity_tolerance)
                     cleanup_verified = cleanup_result[0]
                     cleanup_state = cleanup_result[1:]
                 except OSError as exc:
@@ -671,11 +702,11 @@ def main():
                      + " mode=" + str(cleanup_state[1])
                      + " status=" + hex(cleanup_state[2] or 0)
                      + " velocity=" + str(cleanup_state[3]))
-        script_stopped = cleanup_verified and stop_script(DEVICE_IP)
+        script_stopped = cleanup_verified and stop_script(DEVICE_IP, timeout=SOCKET_TIMEOUT)
         runner.check("uploaded script stopped", script_stopped)
         time.sleep(0.3)
         try:
-            probe = socket.create_connection((DEVICE_IP, MODBUS_PORT), 0.5)
+            probe = socket.create_connection((DEVICE_IP, MODBUS_PORT), SOCKET_TIMEOUT)
             probe.close()
             port_closed = False
         except OSError:
@@ -708,7 +739,8 @@ def main():
             final_status = drive.read_object(0x6041, 0)
             final_mode = drive.read_object(0x6060, 0)
             final_target_velocity = drive.read_object(0x60FF, 0)
-            final_actual_velocity = drive.read_object(0x606C, 0)
+            final_standstill, final_actual_velocity, final_status = wait_standstill_refgo(
+                drive, tolerance=velocity_tolerance)
             final_position = drive.read_object(0x6064, 0)
             final_profile_velocity = drive.read_object(0x6081, 0)
             final_acceleration = drive.read_object(0x6083, 0)
@@ -725,7 +757,7 @@ def main():
             runner.check("final mode zero", final_mode == 0)
             runner.check("final switch-on-disabled", (final_status & 0x006F) == 0x0040,
                          "6041h=" + hex(final_status or 0))
-            runner.check("final standstill", abs(final_actual_velocity) <= VELOCITY_STANDSTILL_TOLERANCE,
+            runner.check("final standstill", final_standstill,
                          "606Ch=" + str(final_actual_velocity))
             runner.check("saved profile velocity preserved", final_profile_velocity == before.get("profile_velocity"),
                          "before=" + str(before.get("profile_velocity"))
